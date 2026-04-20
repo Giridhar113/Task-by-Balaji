@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dynamic User Heading</title>
+    <style>
+      /* Base Styling */
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        margin: 0;
+        background-color: #f0f2f5;
+        transition: background-color 0.5s ease;
+      }
+      #main-heading {
+        font-size: 3.5rem;
+        margin-bottom: 10px;
+        color: #333;
+        transition: color 0.5s ease-in-out;
+        text-align: center;
+      }
+      #time-display {
+        font-size: 1.5rem;
+        margin-bottom: 20px;
+        color: #555;
+      }
+
+      .controls {
+        background: white;
+        padding: 2rem;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        text-align: center;
+      }
+
+      input {
+        padding: 12px;
+        font-size: 1rem;
+        border: 2px solid #ddd;
+        border-radius: 6px;
+        outline: none;
+        transition: border-color 0.3s;
+      }
+
+      input:focus {
+        border-color: #007bff;
+      }
+
+      button {
+        padding: 12px 20px;
+        font-size: 1rem;
+        font-weight: bold;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        transition:
+          background 0.2s,
+          transform 0.1s;
+        margin: 5px;
+      }
+
+      button:hover {
+        background-color: #0056b3;
+      }
+
+      button:active {
+        transform: scale(0.98);
+      }
+
+      h2 {
+        margin: 20px 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="time-display">00:00:00 AM</div>
+
+    <h1 id="main-heading">Type Something Below</h1>
+
+    <div class="controls">
+      <input type="text" id="heading-input" placeholder="Enter new title..." />
+      <br /><br />
+      <button onclick="setCustomHeading()">Update Title</button>
+      <button onclick="changeBackgroundColor()">Change Background</button>
+
+      <hr />
+
+      <h2>Counter: <span id="counter-value">0</span></h2>
+      <button onclick="updateCounter(1)">Increase</button>
+      <button onclick="updateCounter(-1)">Decrease</button>
+
+      <br /><br />
+
+      <button onclick="masterReset()" style="background-color: #ff4757">
+        Master Reset
+      </button>
+    </div>
+
+    <script>
+      // Task 1: Custom Heading & Color
+      function setCustomHeading() {
+        const input = document.getElementById("heading-input");
+        const display = document.getElementById("main-heading");
+        if (input.value.trim() !== "") {
+          display.innerText = input.value;
+        }
+      }
+
+      // Task 2: Background Color Changer (RGB)
+      function changeBackgroundColor() {
+        const r = Math.floor(Math.random() * 256);
+        const g = Math.floor(Math.random() * 256);
+        const b = Math.floor(Math.random() * 256);
+        const newColor = `rgb(${r}, ${g}, ${b})`;
+        document.body.style.backgroundColor = newColor;
+      }
+
+      // Task 3: Dynamic Time Display
+      function updateClock() {
+        const display = document.getElementById("time-display");
+        if (display) {
+          display.style.display = "block";
+          const now = new Date();
+          display.innerText = now.toLocaleTimeString();
+        }
+      }
+      setInterval(updateClock, 1000);
+      updateClock();
+
+      // Task 4: State-Based Counter
+      let counter = 0;
+      function updateCounter(amount) {
+        counter += amount;
+        const counterDisplay = document.getElementById("counter-value");
+        counterDisplay.innerText = counter;
+
+        // Conditional coloring
+        if (counter > 0) {
+          counterDisplay.style.color = "green";
+        } else if (counter < 0) {
+          counterDisplay.style.color = "red";
+        } else {
+          counterDisplay.style.color = "#333";
+        }
+      }
+
+      // Task 5: Master Reset
+      function masterReset() {
+        // Reset Body
+        document.body.style.backgroundColor = "#f0f2f5";
+
+        // Reset Heading
+        const heading = document.getElementById("main-heading");
+        heading.innerText = "Type Something Below";
+        heading.style.color = "#333";
+
+        // Reset Counter
+        counter = 0;
+        const counterDisplay = document.getElementById("counter-value");
+        counterDisplay.innerText = counter;
+        counterDisplay.style.color = "#333";
+
+        // Hide Clock
+        const clock = document.getElementById("time-display");
+        clock.style.display = "none";
+
+        console.log("Application state restored to default.");
+      }
+    </script>
+  </body>
+</html>
