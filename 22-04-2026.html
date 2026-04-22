@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Typing Test</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:         #0a0a0a;
+      --surface:    #111111;
+      --border:     #2a2a2a;
+      --accent:     #e8ff47;
+      --accent-dim: rgba(232,255,71,0.12);
+      --text:       #f0f0f0;
+      --muted:      #555;
+      --green:      #4caf50;
+      --red:        #ff4d4d;
+      --mono:       'Space Mono', monospace;
+      --display:    'Syne', sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      background-color: var(--bg);
+      background-image:
+        repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(255,255,255,0.025) 39px, rgba(255,255,255,0.025) 40px),
+        repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(255,255,255,0.018) 39px, rgba(255,255,255,0.018) 40px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--mono);
+      color: var(--text);
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      top: -30%; left: 50%;
+      transform: translateX(-50%);
+      width: 600px; height: 600px;
+      background: radial-gradient(circle, rgba(232,255,71,0.06) 0%, transparent 70%);
+      pointer-events: none;
+      animation: pulse 6s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%,100% { opacity:.6; transform:translateX(-50%) scale(1); }
+      50%      { opacity:1;  transform:translateX(-50%) scale(1.1); }
+    }
+
+    .page { display: none; }
+    .page.active {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100vw;
+      min-height: 100vh;
+      padding: 24px 0;
+    }
+
+    .card {
+      position: relative;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      animation: slideUp 0.5s cubic-bezier(0.16,1,0.3,1) both;
+    }
+    .card::before, .card::after {
+      content: '';
+      position: absolute;
+      width: 16px; height: 16px;
+      border-color: var(--accent);
+      border-style: solid;
+    }
+    .card::before { top:-1px; left:-1px; border-width:2px 0 0 2px; }
+    .card::after  { bottom:-1px; right:-1px; border-width:0 2px 2px 0; }
+
+    @keyframes slideUp {
+      from { opacity:0; transform:translateY(20px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+
+    .tag { display:block; font-size:0.62rem; letter-spacing:0.14em; color:var(--muted); text-transform:uppercase; margin-bottom:10px; }
+    h2 { font-family:var(--display); font-weight:800; font-size:clamp(1.6rem,5vw,2.1rem); letter-spacing:-0.03em; line-height:1.1; }
+    .divider { display:block; margin:14px 0 32px; height:2px; width:40px; background:var(--accent); }
+
+    input[type="text"], input[type="email"] {
+      width:100%; background:transparent; border:none;
+      border-bottom:1px solid var(--border);
+      color:var(--text); font-family:var(--mono); font-size:0.88rem;
+      padding:14px 0 12px; margin-bottom:6px; outline:none;
+      transition:border-color 0.25s; caret-color:var(--accent);
+    }
+    input::placeholder { color:var(--muted); font-size:0.8rem; letter-spacing:0.04em; }
+    input:focus { border-bottom-color:var(--accent); }
+    .error { display:block; font-size:0.68rem; color:var(--red); min-height:18px; margin-bottom:14px; letter-spacing:0.04em; }
+
+    .btn {
+      display:inline-block; padding:13px 26px;
+      background:var(--accent); color:#000;
+      font-family:var(--mono); font-weight:700; font-size:0.78rem;
+      letter-spacing:0.08em; text-transform:uppercase;
+      border:none; cursor:pointer;
+      transition:opacity 0.2s, transform 0.15s;
+    }
+    .btn:hover { opacity:0.85; transform:translateY(-1px); }
+    .btn.outline { background:transparent; color:var(--accent); border:1px solid var(--accent); }
+    .btn.ghost   { background:transparent; color:var(--muted);  border:1px solid var(--border); }
+    .btn.ghost:hover { color:var(--text); border-color:var(--muted); }
+    .btn.danger  { background:transparent; color:var(--red); border:1px solid rgba(255,77,77,0.4); font-size:0.7rem; padding:8px 14px; }
+    .btn.danger:hover { background:rgba(255,77,77,0.08); }
+    .btn.sm { padding:10px 18px; font-size:0.72rem; }
+
+    .note { margin-top:24px; font-size:0.66rem; color:var(--muted); letter-spacing:0.06em; text-align:center; }
+
+    /* LOGIN */
+    #loginPage .card { width:min(460px,92vw); padding:48px 40px 40px; }
+
+    /* TEST */
+    #testPage .card { width:min(860px,96vw); padding:40px 48px 36px; }
+    .test-header { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:32px; flex-wrap:wrap; gap:16px; }
+    .greeting { font-size:0.65rem; color:var(--muted); letter-spacing:0.1em; text-transform:uppercase; margin-bottom:4px; }
+    .user-name { font-family:var(--display); font-size:1.25rem; font-weight:700; color:var(--accent); }
+    .stats-row { display:flex; gap:24px; align-items:center; }
+    .stat { text-align:center; }
+    .stat-val { font-family:var(--display); font-size:1.75rem; font-weight:800; color:var(--accent); line-height:1; }
+    .stat-lbl { font-size:0.58rem; color:var(--muted); letter-spacing:0.1em; text-transform:uppercase; margin-top:4px; }
+
+    #sentenceBox {
+      background:rgba(255,255,255,0.03); border:1px solid var(--border);
+      padding:22px 24px; font-size:1.05rem; line-height:1.9;
+      letter-spacing:0.02em; min-height:88px; margin-bottom:18px;
+      user-select:none; cursor:text;
+    }
+    #sentenceBox .char { transition:color 0.08s; }
+    #sentenceBox .char.correct { color:var(--green); }
+    #sentenceBox .char.wrong   { color:var(--red); text-decoration:underline; }
+    #sentenceBox .char.active  { background:var(--accent-dim); outline:1px solid var(--accent); border-radius:2px; }
+
+    #hiddenInput { position:fixed; opacity:0; top:0; left:0; width:1px; height:1px; pointer-events:none; }
+
+    .test-actions { display:flex; gap:10px; margin-top:20px; flex-wrap:wrap; align-items:center; }
+    .link-btn {
+      margin-left:auto; font-size:0.68rem; color:var(--muted);
+      letter-spacing:0.06em; cursor:pointer; text-decoration:underline;
+      text-underline-offset:3px; background:none; border:none;
+      font-family:var(--mono); transition:color 0.2s;
+    }
+    .link-btn:hover { color:var(--accent); }
+
+    /* HISTORY */
+    #historyPage .card { width:min(800px,96vw); padding:40px 44px 36px; }
+    .history-header { display:flex; align-items:flex-end; justify-content:space-between; margin-bottom:24px; flex-wrap:wrap; gap:12px; }
+    .history-meta { font-size:0.65rem; color:var(--muted); letter-spacing:0.06em; margin-top:6px; }
+
+    .summary-bar { display:flex; border:1px solid var(--border); margin-bottom:28px; overflow:hidden; }
+    .summary-item { flex:1; padding:16px 20px; border-right:1px solid var(--border); text-align:center; }
+    .summary-item:last-child { border-right:none; }
+    .sval { font-family:var(--display); font-size:1.5rem; font-weight:800; color:var(--accent); }
+    .slbl { font-size:0.58rem; color:var(--muted); letter-spacing:0.1em; text-transform:uppercase; margin-top:3px; }
+
+    .history-table { width:100%; border-collapse:collapse; }
+    .history-table thead tr { border-bottom:1px solid var(--border); }
+    .history-table th { font-size:0.6rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--muted); padding:0 12px 12px; text-align:left; font-weight:400; }
+    .history-table th:first-child { padding-left:0; }
+    .history-table th.right, .history-table td.right { text-align:right; }
+    .history-table tbody tr { border-bottom:1px solid rgba(255,255,255,0.04); transition:background 0.15s; }
+    .history-table tbody tr:hover { background:rgba(255,255,255,0.025); }
+    .history-table tbody tr:last-child { border-bottom:none; }
+    .history-table td { padding:13px 12px; font-size:0.82rem; vertical-align:middle; }
+    .history-table td:first-child { padding-left:0; }
+
+    .td-name { font-weight:700; }
+    .td-email { color:var(--muted); font-size:0.72rem; }
+    .td-wpm { font-family:var(--display); font-size:1.1rem; font-weight:700; color:var(--accent); }
+    .td-acc.hi { color:var(--green); }
+    .td-acc.lo { color:var(--red); }
+    .td-date { color:var(--muted); font-size:0.7rem; }
+
+    .rank-badge { display:inline-flex; align-items:center; justify-content:center; width:24px; height:24px; font-size:0.65rem; font-weight:700; border-radius:2px; }
+    .rank-1 { background:var(--accent); color:#000; }
+    .rank-2 { background:rgba(232,255,71,0.3); color:var(--accent); }
+    .rank-3 { background:rgba(232,255,71,0.12); color:var(--accent); }
+    .rank-n { background:rgba(255,255,255,0.05); color:var(--muted); }
+
+    .empty-state { text-align:center; padding:48px 0 32px; color:var(--muted); font-size:0.8rem; letter-spacing:0.06em; }
+    .empty-state .big { font-family:var(--display); font-size:2.5rem; color:var(--border); margin-bottom:12px; }
+
+    .history-actions { display:flex; gap:10px; margin-top:24px; align-items:center; flex-wrap:wrap; }
+
+    /* POPUP */
+    .popup { position:fixed; inset:0; background:rgba(0,0,0,0.78); display:flex; justify-content:center; align-items:center; z-index:999; }
+    .popup.hidden { display:none; }
+
+    .popup-card {
+      position:relative; background:var(--surface); border:1px solid var(--border);
+      padding:40px 44px; text-align:center; width:min(380px,92vw);
+      animation:pop 0.35s cubic-bezier(0.16,1,0.3,1) both;
+    }
+    .popup-card::before { content:''; position:absolute; top:-1px; left:-1px; width:16px; height:16px; border:2px solid var(--accent); border-right:none; border-bottom:none; }
+    .popup-card::after  { content:''; position:absolute; bottom:-1px; right:-1px; width:16px; height:16px; border:2px solid var(--accent); border-left:none; border-top:none; }
+
+    @keyframes pop { from{transform:scale(0.82);opacity:0;} to{transform:scale(1);opacity:1;} }
+
+    .popup-card h3 { font-family:var(--display); font-size:1.55rem; font-weight:800; margin-bottom:4px; }
+    .popup-tag { font-size:0.62rem; color:var(--muted); letter-spacing:0.1em; text-transform:uppercase; margin-bottom:20px; }
+
+    .saved-badge { display:inline-block; font-size:0.62rem; letter-spacing:0.1em; color:var(--green); border:1px solid rgba(76,175,80,0.35); padding:4px 12px; margin-bottom:20px; text-transform:uppercase; }
+
+    .result-grid { display:flex; justify-content:center; gap:36px; margin-bottom:28px; }
+    .result-item .rval { font-family:var(--display); font-size:2.4rem; font-weight:800; color:var(--accent); line-height:1; }
+    .result-item .rlbl { font-size:0.58rem; color:var(--muted); letter-spacing:0.1em; text-transform:uppercase; margin-top:5px; }
+    .popup-actions { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
+  </style>
+</head>
+<body>
+
+  <!-- PAGE 1: LOGIN -->
+  <div class="page active" id="loginPage">
+    <div class="card">
+      <h2>Start Typing<br/>Test</h2>
+      <span class="divider"></span>
+      <input type="text"  id="name"  placeholder="Enter your name"  autocomplete="off" />
+      <small class="error" id="nameError"></small>
+      <input type="email" id="email" placeholder="Enter your email" autocomplete="off" />
+      <small class="error" id="emailError"></small>
+      <br/>
+      <button class="btn" id="startBtn">Start Test →</button>
+      <p class="note">60-second speed &amp; accuracy challenge</p>
+    </div>
+  </div>
+
+  <!-- PAGE 2: TYPING TEST -->
+  <div class="page" id="testPage">
+    <div class="card">
+      <div class="test-header">
+        <div>
+          <div class="greeting">Good luck,</div>
+          <div class="user-name" id="displayName">—</div>
+        </div>
+        <div class="stats-row">
+          <div class="stat"><div class="stat-val" id="time">60</div><div class="stat-lbl">Sec</div></div>
+          <div class="stat"><div class="stat-val" id="wpm">0</div><div class="stat-lbl">WPM</div></div>
+          <div class="stat"><div class="stat-val" id="accuracy">100</div><div class="stat-lbl">Acc%</div></div>
+        </div>
+      </div>
+
+      <div id="sentenceBox" onclick="focusInput()">Click here &amp; start typing…</div>
+      <input type="text" id="hiddenInput" />
+
+      <div class="test-actions">
+        <button class="btn" id="testStartBtn">▶ Start</button>
+        <button class="btn outline" id="stopBtn">■ Stop</button>
+        <button class="link-btn" onclick="showPage('historyPage'); renderHistory()">view history →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAGE 3: HISTORY -->
+  <div class="page" id="historyPage">
+    <div class="card">
+      <div class="history-header">
+        <div>
+          <span class="tag">// results_log</span>
+          <h2>Your Results</h2>
+          <div class="history-meta" id="historyMeta">—</div>
+        </div>
+      </div>
+      <div class="summary-bar" id="summaryBar"></div>
+      <div id="historyBody"></div>
+      <div class="history-actions">
+        <button class="btn sm outline" onclick="showPage('testPage')">← Back to Test</button>
+        <button class="btn sm ghost"   onclick="showPage('loginPage')">⌂ Home</button>
+        <button class="btn danger"     style="margin-left:auto" onclick="clearHistory()">✕ Clear All</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- RESULT POPUP -->
+  <div class="popup hidden" id="popup">
+    <div class="popup-card">
+      <h3>Test Complete</h3>
+      <div class="popup-tag">// session_end</div>
+      <div class="saved-badge">✓ Result saved</div>
+      <div class="result-grid">
+        <div class="result-item">
+          <div class="rval" id="popWpm">0</div>
+          <div class="rlbl">WPM</div>
+        </div>
+        <div class="result-item">
+          <div class="rval" id="popAccuracy">0</div>
+          <div class="rlbl">Accuracy %</div>
+        </div>
+      </div>
+      <div class="popup-actions">
+        <button class="btn sm"         onclick="restartTest()">↺ Retry</button>
+        <button class="btn sm outline" onclick="viewHistory()">📋 History</button>
+        <button class="btn sm ghost"   onclick="goHome()">⌂ Home</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const sentences = [
+      "The 1910 Cuba hurricane was said to be one of the worst tropical cyclones ever recorded in the Atlantic basin.",
+      "Typing speed improves significantly with consistent and deliberate practice every single day.",
+      "JavaScript makes websites interactive, dynamic, and far more engaging for end users.",
+      "The quick brown fox jumps over the lazy dog near the riverbank every morning.",
+      "Consistent effort and focused practice are the keys to mastering any skill in life.",
+      "Software engineers write code that powers applications used by millions of people worldwide.",
+      "Reading books regularly helps expand vocabulary and improves overall writing ability.",
+      "The mountains stood tall against the clear blue sky as the sun began to rise.",
+      "Every expert was once a beginner who refused to give up on their goals.",
+      "A disciplined mind leads to inner peace and greater productivity in daily life."
+    ];
+
+    const STORAGE_KEY = "typing_results";
+    let userName = "", userEmail = "", currentText = "";
+    let timeLeft = 60, timer = null, running = false;
+
+    const nameInput   = document.getElementById("name");
+    const emailInput  = document.getElementById("email");
+    const nameError   = document.getElementById("nameError");
+    const emailError  = document.getElementById("emailError");
+    const displayName = document.getElementById("displayName");
+    const sentenceBox = document.getElementById("sentenceBox");
+    const hiddenInput = document.getElementById("hiddenInput");
+    const timeEl      = document.getElementById("time");
+    const wpmEl       = document.getElementById("wpm");
+    const accuracyEl  = document.getElementById("accuracy");
+    const popup       = document.getElementById("popup");
+    const popWpm      = document.getElementById("popWpm");
+    const popAccuracy = document.getElementById("popAccuracy");
+
+    /* STORAGE */
+    function loadResults() {
+      try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
+      catch { return []; }
+    }
+    function saveResult(entry) {
+      const r = loadResults();
+      r.unshift(entry);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(r));
+    }
+    function clearHistory() {
+      if (!confirm("Clear all saved results? This cannot be undone.")) return;
+      localStorage.removeItem(STORAGE_KEY);
+      renderHistory();
+    }
+
+    /* ROUTING */
+    function showPage(id) {
+      document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+      document.getElementById(id).classList.add("active");
+    }
+
+    /* LOGIN */
+    document.getElementById("startBtn").addEventListener("click", () => {
+      const name  = nameInput.value.trim();
+      const email = emailInput.value.trim();
+      let ok = true;
+      nameError.textContent = ""; emailError.textContent = "";
+      if (!name)  { nameError.textContent = "Name is required."; ok = false; }
+      if (!email) { emailError.textContent = "Email is required."; ok = false; }
+      else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { emailError.textContent = "Enter a valid email."; ok = false; }
+      if (!ok) return;
+      userName = name; userEmail = email;
+      displayName.textContent = name;
+      showPage("testPage");
+    });
+
+    /* TEST */
+    document.getElementById("testStartBtn").addEventListener("click", startTest);
+    document.getElementById("stopBtn").addEventListener("click", finishTest);
+
+    function startTest() {
+      hiddenInput.value = "";
+      focusInput();
+      loadSentence();
+      timeLeft = 60;
+      timeEl.textContent = timeLeft;
+      wpmEl.textContent = "0";
+      accuracyEl.textContent = "100";
+      clearInterval(timer);
+      running = true;
+      timer = setInterval(() => {
+        timeLeft--;
+        timeEl.textContent = timeLeft;
+        calculateStats();
+        if (timeLeft <= 0) finishTest();
+      }, 1000);
+    }
+
+    function focusInput() { hiddenInput.focus(); }
+
+    function loadSentence() {
+      currentText = sentences[Math.floor(Math.random() * sentences.length)];
+      sentenceBox.innerHTML = "";
+      currentText.split("").forEach(ch => {
+        const span = document.createElement("span");
+        span.className = "char"; span.textContent = ch;
+        sentenceBox.appendChild(span);
+      });
+      const first = sentenceBox.querySelector(".char");
+      if (first) first.classList.add("active");
+    }
+
+    hiddenInput.addEventListener("input", () => {
+      if (!running) return;
+      const chars = sentenceBox.querySelectorAll(".char");
+      const typed = hiddenInput.value.split("");
+      chars.forEach((span, i) => {
+        span.classList.remove("correct", "wrong", "active");
+        if (typed[i] == null) {}
+        else if (typed[i] === span.textContent) span.classList.add("correct");
+        else span.classList.add("wrong");
+      });
+      if (chars[typed.length]) chars[typed.length].classList.add("active");
+      if (typed.length >= currentText.length) { hiddenInput.value = ""; loadSentence(); }
+      calculateStats();
+    });
+
+    function calculateStats() {
+      const typed = hiddenInput.value;
+      wpmEl.textContent = typed.trim() === "" ? 0 : typed.trim().split(/\s+/).length;
+      if (!typed.length) { accuracyEl.textContent = "100"; return; }
+      let correct = 0;
+      for (let i = 0; i < typed.length; i++) if (typed[i] === currentText[i]) correct++;
+      accuracyEl.textContent = ((correct / typed.length) * 100).toFixed(0);
+    }
+
+    function finishTest() {
+      clearInterval(timer);
+      running = false;
+      hiddenInput.blur();
+      const wpm      = parseInt(wpmEl.textContent)      || 0;
+      const accuracy = parseInt(accuracyEl.textContent) || 0;
+      saveResult({ name: userName, email: userEmail, wpm, accuracy, date: new Date().toISOString() });
+      popWpm.textContent = wpm;
+      popAccuracy.textContent = accuracy;
+      popup.classList.remove("hidden");
+    }
+
+    function restartTest() { popup.classList.add("hidden"); startTest(); }
+    function goHome()      { popup.classList.add("hidden"); showPage("loginPage"); }
+    function viewHistory() { popup.classList.add("hidden"); renderHistory(); showPage("historyPage"); }
+
+    /* HISTORY RENDER */
+    function renderHistory() {
+      const results = loadResults();
+      document.getElementById("historyMeta").textContent =
+        results.length ? `${results.length} attempt${results.length !== 1 ? "s" : ""} recorded` : "No attempts yet";
+
+      const summaryBar = document.getElementById("summaryBar");
+      if (results.length) {
+        const avgWpm  = Math.round(results.reduce((s,r) => s + r.wpm,      0) / results.length);
+        const avgAcc  = Math.round(results.reduce((s,r) => s + r.accuracy, 0) / results.length);
+        const bestWpm = Math.max(...results.map(r => r.wpm));
+        summaryBar.style.display = "";
+        summaryBar.innerHTML = `
+          <div class="summary-item"><div class="sval">${results.length}</div><div class="slbl">Attempts</div></div>
+          <div class="summary-item"><div class="sval">${bestWpm}</div><div class="slbl">Best WPM</div></div>
+          <div class="summary-item"><div class="sval">${avgWpm}</div><div class="slbl">Avg WPM</div></div>
+          <div class="summary-item"><div class="sval">${avgAcc}%</div><div class="slbl">Avg Acc</div></div>`;
+      } else {
+        summaryBar.style.display = "none";
+      }
+
+      const body = document.getElementById("historyBody");
+      if (!results.length) {
+        body.innerHTML = `<div class="empty-state"><div class="big">[ ]</div>No results saved yet.<br/>Complete a test to see your history.</div>`;
+        return;
+      }
+
+      const ranked = [...results].sort((a,b) => b.wpm - a.wpm);
+      const medals = ["🥇","🥈","🥉"];
+
+      const rows = results.map(r => {
+        const rank    = ranked.indexOf(r) + 1;
+        const rankCls = rank <= 3 ? `rank-${rank}` : "rank-n";
+        const badge   = rank <= 3 ? medals[rank-1] : rank;
+        const accCls  = r.accuracy >= 90 ? "hi" : r.accuracy < 70 ? "lo" : "";
+        return `<tr>
+          <td><span class="rank-badge ${rankCls}">${badge}</span></td>
+          <td><div class="td-name">${esc(r.name)}</div><div class="td-email">${esc(r.email)}</div></td>
+          <td class="td-wpm">${r.wpm}</td>
+          <td class="td-acc ${accCls}">${r.accuracy}%</td>
+          <td class="td-date right">${formatDate(r.date)}</td>
+        </tr>`;
+      }).join("");
+
+      body.innerHTML = `
+        <table class="history-table">
+          <thead><tr>
+            <th>#</th><th>Player</th><th>WPM</th><th>Accuracy</th><th class="right">Date &amp; Time</th>
+          </tr></thead>
+          <tbody>${rows}</tbody>
+        </table>`;
+    }
+
+    function formatDate(iso) {
+      try {
+        const d = new Date(iso);
+        return d.toLocaleDateString(undefined, { month:"short", day:"numeric", year:"numeric" })
+          + " " + d.toLocaleTimeString(undefined, { hour:"2-digit", minute:"2-digit" });
+      } catch { return "—"; }
+    }
+
+    function esc(str) {
+      return String(str).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+    }
+  </script>
+</body>
+</html>
