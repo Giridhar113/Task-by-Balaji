@@ -1,0 +1,352 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Smart To-Do List</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+    <style>
+      :root {
+        --morning: #ff9f43;
+        --afternoon: #0abde3;
+        --evening: #5f27cd;
+        --accent: #1dd1a1;
+        --text: #2d3436;
+        --muted: #636e72;
+      }
+
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+      body {
+        background:
+          linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)),
+          url("https://images.unsplash.com/photo-1484480974693-6ca0a78fb36b?auto=format&fit=crop&q=80&w=2072")
+          no-repeat center center fixed;
+        background-size: cover;
+        font-family: "DM Sans", sans-serif;
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        padding: 50px 16px;
+        color: var(--text);
+        animation: bgFade 1.2s ease both;
+      }
+
+      @keyframes bgFade {
+        from { opacity: 0; }
+        to   { opacity: 1; }
+      }
+
+      .todo-card {
+        background: rgba(255,255,255,0.7);
+        backdrop-filter: blur(15px);
+        -webkit-backdrop-filter: blur(15px);
+        border: 1px solid rgba(255,255,255,0.3);
+        box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+        width: 100%;
+        max-width: 480px;
+        padding: 32px 28px;
+        border-radius: 24px;
+        animation: slideUp 0.6s cubic-bezier(0.16,1,0.3,1) both;
+      }
+
+      @keyframes slideUp {
+        from { opacity: 0; transform: translateY(30px); }
+        to   { opacity: 1; transform: translateY(0); }
+      }
+
+      .header { margin-bottom: 20px; }
+      .header h2 {
+        font-family: "DM Serif Display", serif;
+        font-size: 1.9rem;
+        color: #000;
+        animation: fadeIn 0.8s 0.3s both;
+      }
+      #greeting {
+        font-size: 0.9rem;
+        color: var(--muted);
+        font-weight: 600;
+        animation: fadeIn 0.8s 0.2s both;
+      }
+      #quote {
+        font-size: 0.82rem;
+        color: #7f8c8d;
+        font-style: italic;
+        margin-top: 6px;
+        transition: opacity 0.4s ease;
+        animation: fadeIn 0.8s 0.4s both;
+      }
+
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(8px); }
+        to   { opacity: 1; transform: translateY(0); }
+      }
+
+      .stats { margin-bottom: 22px; }
+      .stats-row {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.85rem;
+        color: var(--muted);
+        margin-bottom: 6px;
+      }
+      #completionRate { font-weight: 700; color: #00b894; }
+
+      .progress-bar {
+        background: rgba(0,0,0,0.1);
+        height: 8px;
+        border-radius: 10px;
+        overflow: hidden;
+      }
+      #progressFill {
+        background: linear-gradient(90deg, #1dd1a1, #00cec9);
+        height: 100%;
+        width: 0%;
+        transition: width 0.5s ease;
+        position: relative;
+        overflow: hidden;
+      }
+      #progressFill::after {
+        content: "";
+        position: absolute;
+        top: 0; left: -60%;
+        width: 50%; height: 100%;
+        background: rgba(255,255,255,0.4);
+        animation: shimmer 1.8s infinite;
+      }
+      @keyframes shimmer {
+        to { left: 140%; }
+      }
+
+      .input-group { display: grid; gap: 10px; margin-bottom: 20px; }
+
+      input, select {
+        background: rgba(255,255,255,0.5);
+        border: 1px solid rgba(0,0,0,0.1);
+        padding: 12px;
+        border-radius: 12px;
+        font-family: inherit;
+        transition: background 0.2s, border-color 0.2s, transform 0.15s;
+      }
+      input:focus {
+        background: white;
+        border-color: var(--accent);
+        outline: none;
+        transform: scale(1.01);
+      }
+
+      #addBtn {
+        background: var(--accent);
+        color: white;
+        border: none;
+        font-weight: 600;
+        padding: 12px;
+        border-radius: 12px;
+        cursor: pointer;
+        box-shadow: 0 4px 15px rgba(29,209,161,0.3);
+        transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+      }
+      #addBtn:hover  { background: #17b589; box-shadow: 0 6px 20px rgba(29,209,161,0.45); }
+      #addBtn:active { transform: scale(0.97); }
+
+      .filter-tabs { display: flex; gap: 8px; margin-bottom: 18px; }
+      .filter-tabs button {
+        padding: 6px 16px;
+        border-radius: 20px;
+        border: none;
+        background: rgba(0,0,0,0.05);
+        cursor: pointer;
+        font-size: 0.8rem;
+        transition: background 0.25s, color 0.25s, transform 0.15s;
+      }
+      .filter-tabs button:hover  { transform: translateY(-1px); }
+      .filter-tabs button.active { background: var(--text); color: white; }
+
+      ul { list-style: none; }
+
+      li {
+        background: rgba(255,255,255,0.6);
+        margin-bottom: 10px;
+        padding: 15px;
+        border-radius: 15px;
+        display: flex;
+        align-items: center;
+        border-left: 6px solid #ddd;
+        transition: opacity 0.3s, background 0.3s, transform 0.2s;
+        animation: taskIn 0.35s cubic-bezier(0.16,1,0.3,1) both;
+      }
+      li:hover { transform: translateX(4px); }
+
+      @keyframes taskIn {
+        from { opacity: 0; transform: translateX(-16px); }
+        to   { opacity: 1; transform: translateX(0); }
+      }
+
+      li.Morning   { border-left-color: var(--morning); }
+      li.Afternoon { border-left-color: var(--afternoon); }
+      li.Evening   { border-left-color: var(--evening); }
+
+      li.completed {
+        opacity: 0.6;
+        background: rgba(255,255,255,0.3);
+        border-left-color: var(--accent) !important;
+      }
+      li.completed .task-text { text-decoration: line-through; }
+
+      .task-body { flex: 1; cursor: pointer; }
+      .task-text { font-weight: 600; font-size: 0.95rem; }
+      .task-meta { font-size: 0.75rem; color: var(--muted); margin-top: 2px; }
+
+      .delete-btn {
+        color: #ff7675;
+        cursor: pointer;
+        border: none;
+        background: none;
+        font-size: 1.2rem;
+        transition: transform 0.2s, color 0.2s;
+        border-radius: 6px;
+        padding: 2px 6px;
+      }
+      .delete-btn:hover { transform: scale(1.3) rotate(10deg); color: #d63031; }
+    </style>
+  </head>
+  <body>
+    <div class="todo-card">
+      <div class="header">
+        <div id="greeting">Hello!</div>
+        <h2>My Daily Flow</h2>
+        <div id="quote">"Make today amazing."</div>
+      </div>
+
+      <div class="stats">
+        <div class="stats-row">
+          <span id="completionRate">0% Completed</span>
+          <span id="taskCount">0 tasks</span>
+        </div>
+        <div class="progress-bar"><div id="progressFill"></div></div>
+      </div>
+
+      <div class="input-group">
+        <input type="text" id="taskInput" placeholder="Add a new task..." />
+        <div style="display:flex; gap:10px">
+          <input type="date" id="dateInput" style="flex:1" />
+          <select id="timeSlot" style="flex:1">
+            <option value="Morning">Morning 🌅</option>
+            <option value="Afternoon">Afternoon ☀️</option>
+            <option value="Evening">Evening 🌙</option>
+          </select>
+        </div>
+        <button id="addBtn">+ Add Task</button>
+      </div>
+
+      <div class="filter-tabs">
+        <button class="active" onclick="filterTasks('all', this)">All</button>
+        <button onclick="filterTasks('Morning', this)">Morning</button>
+        <button onclick="filterTasks('Afternoon', this)">Afternoon</button>
+        <button onclick="filterTasks('Evening', this)">Evening</button>
+      </div>
+
+      <ul id="todoList"></ul>
+    </div>
+
+    <script>
+      let tasks = JSON.parse(localStorage.getItem("tasks") || "[]");
+      let currentFilter = "all";
+
+      const quotes = [
+        "Focus on being productive instead of busy.",
+        "Your only limit is your mind.",
+        "Small steps every day lead to big results.",
+        "Dream big. Start small. But most of all, start.",
+      ];
+
+      function render() {
+        const list = document.getElementById("todoList");
+        list.innerHTML = "";
+
+        const filtered = currentFilter === "all"
+          ? tasks
+          : tasks.filter(t => t.slot === currentFilter);
+
+        if (filtered.length === 0) {
+          list.innerHTML = `<div style="text-align:center;color:#636e72;padding:20px;font-size:0.9rem;">No tasks found.</div>`;
+        }
+
+        filtered.forEach(function(task) {
+          const i = tasks.findIndex(t => t === task);
+          const li = document.createElement("li");
+          li.className = `${task.slot} ${task.done ? "completed" : ""}`;
+          li.innerHTML = `
+            <div class="task-body" onclick="toggle(${i})">
+              <div class="task-text">${task.text}</div>
+              <div class="task-meta">${task.date || "Anytime"} · ${task.slot}</div>
+            </div>
+            <button class="delete-btn" onclick="remove(${i})">✕</button>
+          `;
+          list.appendChild(li);
+        });
+
+        const total = tasks.length;
+        const done  = tasks.filter(t => t.done).length;
+        const pct   = total === 0 ? 0 : Math.round(done / total * 100);
+
+        document.getElementById("progressFill").style.width = pct + "%";
+        document.getElementById("completionRate").textContent = pct + "% Completed";
+        document.getElementById("taskCount").textContent = `${done} of ${total} tasks`;
+
+        localStorage.setItem("tasks", JSON.stringify(tasks));
+      }
+
+      function addTask() {
+        const textInput = document.getElementById("taskInput");
+        if (!textInput.value.trim()) {
+          textInput.animate([
+            { transform: "translateX(0)" },
+            { transform: "translateX(-8px)" },
+            { transform: "translateX(8px)" },
+            { transform: "translateX(0)" }
+          ], { duration: 300, easing: "ease" });
+          return;
+        }
+
+        tasks.unshift({
+          text: textInput.value.trim(),
+          date: document.getElementById("dateInput").value,
+          slot: document.getElementById("timeSlot").value,
+          done: false
+        });
+
+        textInput.value = "";
+        document.getElementById("quote").textContent =
+          `"${quotes[Math.floor(Math.random() * quotes.length)]}"`;
+        render();
+      }
+
+      function toggle(i) {
+        tasks[i].done = !tasks[i].done;
+        render();
+      }
+
+      function remove(i) {
+        tasks.splice(i, 1);
+        render();
+      }
+
+      function filterTasks(slot, btn) {
+        currentFilter = slot;
+        document.querySelectorAll(".filter-tabs button").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        render();
+      }
+
+      const hr = new Date().getHours();
+      document.getElementById("greeting").textContent =
+        hr < 12 ? "Good Morning! ☀️" : hr < 18 ? "Good Afternoon! 🌤️" : "Good Evening! 🌙";
+
+      document.getElementById("addBtn").onclick = addTask;
+      document.getElementById("taskInput").onkeypress = e => { if (e.key === "Enter") addTask(); };
+
+      render();
+    </script>
+  </body>
+</html>
