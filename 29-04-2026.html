@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Smart Checkout</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0d0d0f;
+      --surface:   #16161a;
+      --card:      #1e1e24;
+      --border:    #2a2a34;
+      --accent:    #f5c542;
+      --accent2:   #ff6b35;
+      --text:      #e8e8f0;
+      --muted:     #6b6b80;
+      --success:   #4ade80;
+      --radius:    18px;
+      --transition: 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'DM Mono', monospace;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 60% 50% at 20% 10%, rgba(245,197,66,0.07) 0%, transparent 70%),
+        radial-gradient(ellipse 50% 60% at 80% 90%, rgba(255,107,53,0.06) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .wrapper {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 480px;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
+
+    .logo-mark {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 0.4rem 1rem;
+      font-size: 0.72rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 1.5rem;
+    }
+
+    .logo-mark span {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      display: inline-block;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50%       { opacity: 0.5; transform: scale(0.75); }
+    }
+
+    .page-title {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(2rem, 6vw, 3rem);
+      font-weight: 800;
+      line-height: 1.05;
+      letter-spacing: -0.03em;
+      color: var(--text);
+    }
+
+    .page-title em {
+      font-style: normal;
+      color: var(--accent);
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 2rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(245,197,66,0.4), transparent);
+    }
+
+    .greeting-section {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 1rem 1.25rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      margin-bottom: 2rem;
+    }
+
+    .greeting-icon {
+      font-size: 1.5rem;
+      flex-shrink: 0;
+    }
+
+    #msg-display {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: var(--text);
+      transition: opacity 0.4s ease, transform 0.4s ease;
+    }
+
+    .divider {
+      height: 1px;
+      background: var(--border);
+      margin: 1.5rem 0;
+      position: relative;
+    }
+
+    .divider::before {
+      content: 'ORDER SUMMARY';
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      background: var(--card);
+      padding: 0 0.75rem;
+      font-size: 0.65rem;
+      letter-spacing: 0.18em;
+      color: var(--muted);
+    }
+
+    .field-label {
+      display: block;
+      font-size: 0.7rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.5rem;
+    }
+
+    .input-wrap {
+      position: relative;
+      margin-bottom: 1.5rem;
+    }
+
+    .currency-prefix {
+      position: absolute;
+      left: 1.1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      font-family: 'Syne', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--muted);
+      pointer-events: none;
+      transition: color var(--transition);
+    }
+
+    #subtotal-input {
+      width: 100%;
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      padding: 1rem 1rem 1rem 2.2rem;
+      font-family: 'Syne', sans-serif;
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--text);
+      outline: none;
+      transition: border-color var(--transition), box-shadow var(--transition);
+      -moz-appearance: textfield;
+    }
+
+    #subtotal-input::-webkit-inner-spin-button,
+    #subtotal-input::-webkit-outer-spin-button { -webkit-appearance: none; }
+
+    #subtotal-input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(245,197,66,0.12);
+    }
+
+    #subtotal-input:focus ~ .currency-prefix,
+    .input-wrap:focus-within .currency-prefix {
+      color: var(--accent);
+    }
+
+    .tier-badges {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin-bottom: 1.75rem;
+    }
+
+    .tier-badge {
+      flex: 1;
+      min-width: 0;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.6rem 0.5rem;
+      text-align: center;
+      transition: border-color var(--transition), background var(--transition);
+    }
+
+    .tier-badge .tier-amount {
+      font-size: 0.65rem;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      display: block;
+      margin-bottom: 0.2rem;
+    }
+
+    .tier-badge .tier-disc {
+      font-family: 'Syne', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .tier-badge.active {
+      border-color: var(--accent);
+      background: rgba(245,197,66,0.06);
+    }
+
+    .tier-badge.active .tier-disc { color: var(--accent); }
+
+    .total-section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1.5rem;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      transition: border-color var(--transition);
+    }
+
+    .total-section.discount-active {
+      border-color: var(--accent);
+      box-shadow: 0 0 30px rgba(245,197,66,0.08);
+    }
+
+    .total-label {
+      font-size: 0.65rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.6rem;
+      display: block;
+    }
+
+    #total-display {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(2.2rem, 8vw, 3rem);
+      font-weight: 800;
+      color: var(--text);
+      line-height: 1.1;
+      transition: color var(--transition), transform var(--transition);
+    }
+
+    .total-section.discount-active #total-display {
+      color: var(--accent);
+    }
+
+    .discount-pill {
+      display: inline-block;
+      background: rgba(245,197,66,0.15);
+      color: var(--accent);
+      border: 1px solid rgba(245,197,66,0.3);
+      border-radius: 999px;
+      padding: 0.25rem 0.75rem;
+      font-size: 0.75rem;
+      font-weight: 500;
+      margin-top: 0.5rem;
+      animation: slideUp 0.3s ease;
+    }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .saving-bar {
+      margin-top: 1.25rem;
+      height: 4px;
+      background: var(--border);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+
+    .saving-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      border-radius: 99px;
+      width: 0%;
+      transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .saving-hint {
+      margin-top: 0.5rem;
+      font-size: 0.68rem;
+      color: var(--muted);
+      text-align: right;
+      min-height: 1em;
+    }
+
+    .checkout-btn {
+      width: 100%;
+      margin-top: 1.5rem;
+      padding: 1rem;
+      background: var(--accent);
+      color: #0d0d0f;
+      border: none;
+      border-radius: 12px;
+      font-family: 'Syne', sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      cursor: pointer;
+      transition: transform var(--transition), box-shadow var(--transition), background var(--transition);
+    }
+
+    .checkout-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(245,197,66,0.25);
+    }
+
+    .checkout-btn:active { transform: translateY(0); }
+
+    .footer-note {
+      text-align: center;
+      margin-top: 1.5rem;
+      font-size: 0.68rem;
+      color: var(--muted);
+      letter-spacing: 0.04em;
+    }
+
+    .footer-note strong { color: var(--success); }
+
+    @media (max-width: 400px) {
+      .card { padding: 1.25rem; }
+      .tier-badges { gap: 0.35rem; }
+    }
+
+    /* ── MODAL OVERLAY ── */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(5, 5, 8, 0.82);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.35s ease;
+    }
+
+    .modal-overlay.open {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .modal {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 2.5rem 2rem;
+      width: 100%;
+      max-width: 420px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      transform: scale(0.88) translateY(24px);
+      transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .modal-overlay.open .modal {
+      transform: scale(1) translateY(0);
+    }
+
+    .modal::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--accent2), var(--accent), var(--accent2));
+      background-size: 200% 100%;
+      animation: shimmer 2s linear infinite;
+    }
+
+    @keyframes shimmer {
+      0%   { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    .modal-icon {
+      font-size: 4rem;
+      line-height: 1;
+      margin-bottom: 1rem;
+      display: block;
+      animation: popIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 0.15s both;
+    }
+
+    @keyframes popIn {
+      from { transform: scale(0) rotate(-20deg); opacity: 0; }
+      to   { transform: scale(1) rotate(0deg);   opacity: 1; }
+    }
+
+    .modal-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.85rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      color: var(--text);
+      margin-bottom: 0.4rem;
+    }
+
+    .modal-title span { color: var(--accent); }
+
+    .modal-sub {
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-bottom: 1.75rem;
+      letter-spacing: 0.02em;
+    }
+
+    .modal-receipt {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1.25rem;
+      margin-bottom: 1.5rem;
+      text-align: left;
+    }
+
+    .receipt-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.4rem 0;
+      font-size: 0.8rem;
+    }
+
+    .receipt-row + .receipt-row {
+      border-top: 1px solid var(--border);
+    }
+
+    .receipt-row .label { color: var(--muted); }
+    .receipt-row .value { font-family: 'Syne', sans-serif; font-weight: 700; color: var(--text); }
+    .receipt-row .value.green { color: var(--success); }
+    .receipt-row .value.big {
+      font-size: 1.2rem;
+      color: var(--accent);
+    }
+
+    .modal-order-id {
+      font-size: 0.65rem;
+      letter-spacing: 0.18em;
+      color: var(--muted);
+      margin-bottom: 1.5rem;
+      text-transform: uppercase;
+    }
+
+    .modal-close-btn {
+      width: 100%;
+      padding: 0.9rem;
+      background: var(--accent);
+      color: #0d0d0f;
+      border: none;
+      border-radius: 12px;
+      font-family: 'Syne', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .modal-close-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(245,197,66,0.3);
+    }
+
+    .modal-close-btn:active { transform: translateY(0); }
+
+    /* ── CONFETTI CANVAS ── */
+    #confetti-canvas {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 99;
+    }
+  </style>
+</head>
+<body>
+
+<div class="wrapper">
+  <div class="header">
+    <div class="logo-mark"><span></span> Smart Checkout</div>
+    <h1 class="page-title">Your <em>Order</em><br>Summary</h1>
+  </div>
+
+  <div class="card">
+    <div class="greeting-section">
+      <div class="greeting-icon">👋</div>
+      <div id="msg-display">Loading...</div>
+    </div>
+
+    <div class="divider"></div>
+
+    <label class="field-label" for="subtotal-input">Enter Subtotal</label>
+    <div class="input-wrap">
+      <span class="currency-prefix">$</span>
+      <input type="number" id="subtotal-input" placeholder="0.00" min="0" step="0.01" />
+    </div>
+
+    <div class="tier-badges">
+      <div class="tier-badge" id="tier-1">
+        <span class="tier-amount">$50+</span>
+        <span class="tier-disc">10% Off</span>
+      </div>
+      <div class="tier-badge" id="tier-2">
+        <span class="tier-amount">$100+</span>
+        <span class="tier-disc">20% Off</span>
+      </div>
+      <div class="tier-badge" id="tier-3">
+        <span class="tier-amount">$150+</span>
+        <span class="tier-disc">30% Off</span>
+      </div>
+    </div>
+
+    <div class="total-section" id="total-section">
+      <span class="total-label">Total to Pay</span>
+      <div id="total-display">$0.00</div>
+      <div id="discount-pill-wrap"></div>
+      <div class="saving-bar">
+        <div class="saving-bar-fill" id="saving-bar-fill"></div>
+      </div>
+      <div class="saving-hint" id="saving-hint"></div>
+    </div>
+
+    <button class="checkout-btn">Proceed to Checkout →</button>
+  </div>
+
+  <p class="footer-note"><strong>✓ Secure</strong> &nbsp;·&nbsp; Discounts applied automatically &nbsp;·&nbsp; No promo code needed</p>
+</div>
+
+<!-- Confetti Canvas -->
+<canvas id="confetti-canvas"></canvas>
+
+<!-- Congratulations Modal -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <span class="modal-icon">🎉</span>
+    <h2 class="modal-title">Congrats<span>!</span></h2>
+    <p class="modal-sub">Your order has been placed successfully.</p>
+
+    <div class="modal-receipt">
+      <div class="receipt-row">
+        <span class="label">Subtotal</span>
+        <span class="value" id="modal-subtotal">—</span>
+      </div>
+      <div class="receipt-row">
+        <span class="label">Discount</span>
+        <span class="value green" id="modal-discount">—</span>
+      </div>
+      <div class="receipt-row">
+        <span class="label">Total Charged</span>
+        <span class="value big" id="modal-total">—</span>
+      </div>
+    </div>
+
+    <p class="modal-order-id" id="modal-order-id">Order #——</p>
+
+    <button class="modal-close-btn" id="modal-close-btn">Back to Shop 🛍️</button>
+  </div>
+</div>
+
+<script>
+  const subtotalInput = document.getElementById("subtotal-input");
+  const totalDisplay  = document.getElementById("total-display");
+  const greetingDisplay = document.getElementById("msg-display");
+  const totalSection  = document.getElementById("total-section");
+  const savingBarFill = document.getElementById("saving-bar-fill");
+  const savingHint    = document.getElementById("saving-hint");
+  const pillWrap      = document.getElementById("discount-pill-wrap");
+  const tiers         = [
+    document.getElementById("tier-1"),
+    document.getElementById("tier-2"),
+    document.getElementById("tier-3")
+  ];
+
+  function updateGreeting() {
+    const hour = new Date().getHours();
+    let msg;
+    if (hour >= 5 && hour < 12) {
+      msg = "Good Morning! 🌅";
+    } else if (hour >= 12 && hour < 16) {
+      msg = "Good Afternoon! ☀️";
+    } else {
+      msg = "Good Evening! 🌙";
+    }
+
+    greetingDisplay.style.opacity = 0;
+    greetingDisplay.style.transform = "translateY(-10px)";
+    setTimeout(() => {
+      greetingDisplay.innerText = msg;
+      greetingDisplay.style.opacity = 1;
+      greetingDisplay.style.transform = "translateY(0)";
+    }, 400);
+  }
+
+  subtotalInput.addEventListener("input", (e) => {
+    let rawValue = parseFloat(e.target.value) || 0;
+    const total = Math.max(0, rawValue);
+
+    let finalPrice;
+    let discountMsg = "";
+    let discountPct = 0;
+    let activeTier  = -1;
+
+    if (total >= 150) {
+      finalPrice   = total * 0.7;
+      discountMsg  = "30% MEGA DISCOUNT! 🔥";
+      discountPct  = 30;
+      activeTier   = 2;
+    } else if (total >= 100) {
+      finalPrice   = total * 0.8;
+      discountMsg  = "20% DISCOUNT! ✨";
+      discountPct  = 20;
+      activeTier   = 1;
+    } else if (total >= 50) {
+      finalPrice   = total * 0.9;
+      discountMsg  = "10% DISCOUNT! 👍";
+      discountPct  = 10;
+      activeTier   = 0;
+    } else {
+      finalPrice   = total;
+      discountPct  = 0;
+    }
+
+    tiers.forEach((t, i) => {
+      t.classList.toggle("active", i === activeTier);
+    });
+
+    totalDisplay.style.transform = "scale(0.96)";
+    setTimeout(() => { totalDisplay.style.transform = "scale(1)"; }, 150);
+
+    if (discountMsg) {
+      totalSection.classList.add("discount-active");
+      totalDisplay.innerText = `$${finalPrice.toFixed(2)}`;
+      pillWrap.innerHTML = `<div class="discount-pill">${discountMsg}</div>`;
+      const saved = (total - finalPrice).toFixed(2);
+      savingHint.textContent = `You save $${saved}`;
+    } else {
+      totalSection.classList.remove("discount-active");
+      totalDisplay.innerText = `$${finalPrice.toFixed(2)}`;
+      pillWrap.innerHTML = "";
+      savingHint.textContent = total > 0 && total < 50
+        ? `Spend $${(50 - total).toFixed(2)} more to unlock 10% off`
+        : "";
+    }
+
+    savingBarFill.style.width = `${Math.min(discountPct / 30 * 100, 100)}%`;
+
+    if (e.target.value < 0) e.target.value = 0;
+  });
+
+  updateGreeting();
+
+  /* ── STATE ── */
+  let currentTotal = 0, currentSubtotal = 0, currentDiscountPct = 0;
+
+  subtotalInput.addEventListener("input", (e) => {
+    let rawValue = parseFloat(e.target.value) || 0;
+    currentSubtotal = Math.max(0, rawValue);
+    if (currentSubtotal >= 150)      { currentDiscountPct = 30; }
+    else if (currentSubtotal >= 100) { currentDiscountPct = 20; }
+    else if (currentSubtotal >= 50)  { currentDiscountPct = 10; }
+    else                              { currentDiscountPct = 0;  }
+    currentTotal = currentSubtotal * (1 - currentDiscountPct / 100);
+  });
+
+  /* ── CHECKOUT BUTTON ── */
+  document.querySelector(".checkout-btn").addEventListener("click", () => {
+    const orderId = "ORD-" + Math.random().toString(36).slice(2,8).toUpperCase();
+    const saved   = (currentSubtotal - currentTotal).toFixed(2);
+
+    document.getElementById("modal-subtotal").textContent = `$${currentSubtotal.toFixed(2)}`;
+    document.getElementById("modal-discount").textContent =
+      currentDiscountPct > 0 ? `-$${saved} (${currentDiscountPct}% off)` : "None";
+    document.getElementById("modal-total").textContent   = `$${currentTotal.toFixed(2)}`;
+    document.getElementById("modal-order-id").textContent = `Order #${orderId}`;
+
+    document.getElementById("modal-overlay").classList.add("open");
+    launchConfetti();
+  });
+
+  document.getElementById("modal-close-btn").addEventListener("click", () => {
+    document.getElementById("modal-overlay").classList.remove("open");
+    stopConfetti();
+  });
+
+  document.getElementById("modal-overlay").addEventListener("click", (e) => {
+    if (e.target === e.currentTarget) {
+      document.getElementById("modal-overlay").classList.remove("open");
+      stopConfetti();
+    }
+  });
+
+  /* ── CONFETTI ── */
+  const canvas = document.getElementById("confetti-canvas");
+  const ctx    = canvas.getContext("2d");
+  let pieces   = [], animFrame, running = false;
+
+  const COLORS = ["#f5c542","#ff6b35","#4ade80","#60a5fa","#e879f9","#fb7185","#fff"];
+
+  function resize() {
+    canvas.width  = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+
+  window.addEventListener("resize", resize);
+  resize();
+
+  function Piece() {
+    this.x    = Math.random() * canvas.width;
+    this.y    = -12;
+    this.w    = 6 + Math.random() * 8;
+    this.h    = 10 + Math.random() * 8;
+    this.r    = Math.random() * Math.PI * 2;
+    this.dr   = (Math.random() - 0.5) * 0.2;
+    this.vx   = (Math.random() - 0.5) * 3;
+    this.vy   = 2.5 + Math.random() * 3.5;
+    this.color = COLORS[Math.floor(Math.random() * COLORS.length)];
+    this.alpha = 1;
+  }
+
+  function launchConfetti() {
+    running = true;
+    for (let i = 0; i < 140; i++) {
+      const p = new Piece();
+      p.y = -12 - Math.random() * canvas.height * 0.3;
+      pieces.push(p);
+    }
+    if (!animFrame) loop();
+  }
+
+  function stopConfetti() {
+    running = false;
+    setTimeout(() => {
+      cancelAnimationFrame(animFrame);
+      animFrame = null;
+      pieces = [];
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }, 1800);
+  }
+
+  function loop() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    if (running && pieces.length < 200 && Math.random() < 0.35) {
+      pieces.push(new Piece());
+    }
+
+    pieces.forEach(p => {
+      p.x  += p.vx;
+      p.y  += p.vy;
+      p.r  += p.dr;
+      p.vy += 0.06;
+      if (p.y > canvas.height * 0.75) p.alpha -= 0.018;
+
+      ctx.save();
+      ctx.globalAlpha = Math.max(0, p.alpha);
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.r);
+      ctx.fillStyle = p.color;
+      ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+      ctx.restore();
+    });
+
+    pieces = pieces.filter(p => p.alpha > 0 && p.y < canvas.height + 20);
+
+    animFrame = requestAnimationFrame(loop);
+  }
+</script>
+</body>
+</html>

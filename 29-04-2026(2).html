@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>24h Sun Progress</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --accent: #fbbf24;
+    }
+
+    body {
+      font-family: "Outfit", sans-serif;
+      min-height: 100vh;
+      overflow: hidden;
+      background: #020817;
+      transition: background 1.2s ease;
+    }
+
+    #star-canvas {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .scene {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .sky-container {
+      position: absolute;
+      inset: 0;
+      transition: background 1.2s ease;
+      background: #0f172a;
+    }
+
+    .horizon-glow {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 110px;
+      height: 120px;
+      background: transparent;
+      transition: background 1s ease;
+      pointer-events: none;
+    }
+
+    #sun-orb {
+      position: absolute;
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 40% 38%, #fffde7 0%, #fbbf24 55%, #f97316 100%);
+      box-shadow: 0 0 30px 10px rgba(251,191,36,0.45), 0 0 80px 30px rgba(251,191,36,0.15);
+      transition: box-shadow 0.8s ease, background 0.8s ease;
+    }
+
+    #moon-orb {
+      position: absolute;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, #f1f5f9 0%, #cbd5e1 60%, #94a3b8 100%);
+      box-shadow: 0 0 18px 6px rgba(148,163,184,0.3);
+      transition: opacity 0.8s ease;
+    }
+
+    .cloud {
+      position: absolute;
+      border-radius: 999px;
+      opacity: 0;
+      transition: opacity 1.2s ease;
+      pointer-events: none;
+    }
+
+    .cloud::before, .cloud::after {
+      content: "";
+      position: absolute;
+      background: inherit;
+      border-radius: 50%;
+    }
+
+    #cloud1 { width: 160px; height: 42px; background: rgba(255,255,255,0.18); top: 18%; left: 10%; }
+    #cloud1::before { width: 68px; height: 52px; top: -22px; left: 22px; }
+    #cloud1::after  { width: 50px; height: 42px; top: -14px; left: 70px; }
+
+    #cloud2 { width: 130px; height: 36px; background: rgba(255,255,255,0.14); top: 28%; right: 12%; }
+    #cloud2::before { width: 56px; height: 42px; top: -18px; left: 20px; }
+    #cloud2::after  { width: 40px; height: 34px; top: -10px; left: 58px; }
+
+    #cloud3 { width: 100px; height: 28px; background: rgba(255,255,255,0.1); top: 12%; right: 28%; }
+    #cloud3::before { width: 42px; height: 34px; top: -14px; left: 16px; }
+    #cloud3::after  { width: 30px; height: 28px; top: -8px; left: 46px; }
+
+    .ground-strip {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 110px;
+      overflow: hidden;
+      transition: background 1.2s ease;
+    }
+
+    .ground-strip::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to bottom, rgba(0,0,0,0.12) 0%, transparent 40%);
+    }
+
+    .tree {
+      position: absolute;
+      bottom: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .tree-top {
+      width: 0;
+      height: 0;
+      border-left: 11px solid transparent;
+      border-right: 11px solid transparent;
+      border-bottom: 28px solid rgba(0,0,0,0.2);
+      margin-bottom: -2px;
+    }
+
+    .tree-trunk {
+      width: 6px;
+      height: 14px;
+      background: rgba(0,0,0,0.24);
+      border-radius: 1px;
+    }
+
+    .controls-card {
+      position: absolute;
+      left: 50%;
+      bottom: 24px;
+      transform: translateX(-50%);
+      z-index: 2;
+      width: min(760px, calc(100vw - 32px));
+      background: rgba(15, 23, 42, 0.24);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border: 1px solid rgba(255,255,255,0.14);
+      border-radius: 28px;
+      padding: 1.5rem 1.75rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+      box-shadow: 0 20px 70px rgba(2, 8, 23, 0.3);
+    }
+
+    .time-row {
+      display: flex;
+      align-items: baseline;
+      gap: 0.5rem;
+    }
+
+    #time-text {
+      font-size: clamp(3rem, 9vw, 5rem);
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: -0.04em;
+      line-height: 1;
+      transition: color 0.8s ease;
+      text-shadow: 0 2px 16px rgba(0,0,0,0.3);
+    }
+
+    .period-label {
+      font-size: 1rem;
+      font-weight: 300;
+      color: rgba(255,255,255,0.55);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      align-self: center;
+    }
+
+    .phase-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 999px;
+      padding: 0.3rem 0.9rem;
+      font-size: 0.8rem;
+      font-weight: 400;
+      color: rgba(255,255,255,0.75);
+      letter-spacing: 0.04em;
+      transition: all 0.6s ease;
+    }
+
+    .phase-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--accent);
+      transition: background 0.6s ease;
+    }
+
+    .slider-wrap {
+      width: 100%;
+      position: relative;
+    }
+
+    .slider-track-labels {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 0.5rem;
+    }
+
+    .track-label {
+      font-size: 0.7rem;
+      font-weight: 300;
+      color: rgba(255,255,255,0.4);
+      letter-spacing: 0.08em;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      height: 5px;
+      -webkit-appearance: none;
+      appearance: none;
+      background: rgba(255,255,255,0.15);
+      border-radius: 999px;
+      outline: none;
+      cursor: pointer;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: var(--accent);
+      border: 3px solid rgba(255,255,255,0.92);
+      box-shadow: 0 2px 12px rgba(251,191,36,0.5);
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+      cursor: pointer;
+    }
+
+    input[type="range"]:active::-webkit-slider-thumb {
+      transform: scale(1.2);
+      box-shadow: 0 4px 20px rgba(251,191,36,0.7);
+    }
+
+    input[type="range"]::-moz-range-thumb {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: var(--accent);
+      border: 3px solid rgba(255,255,255,0.9);
+      cursor: pointer;
+    }
+
+    .info-row {
+      display: flex;
+      gap: 1rem;
+      width: 100%;
+    }
+
+    .info-pill {
+      flex: 1;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 14px;
+      padding: 0.7rem 0.75rem;
+      text-align: center;
+    }
+
+    .pill-label {
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: rgba(255,255,255,0.42);
+      display: block;
+      margin-bottom: 0.2rem;
+    }
+
+    .pill-val {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: rgba(255,255,255,0.9);
+    }
+
+    .hint {
+      font-size: 0.72rem;
+      color: rgba(255,255,255,0.36);
+      letter-spacing: 0.04em;
+    }
+
+    @media (max-width: 768px) {
+      .ground-strip {
+        height: 90px;
+      }
+
+      .horizon-glow {
+        bottom: 90px;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .controls-card {
+        width: calc(100vw - 20px);
+        bottom: 10px;
+        padding: 1.1rem;
+        gap: 0.85rem;
+      }
+
+      .info-row {
+        gap: 0.5rem;
+      }
+
+      .track-label {
+        font-size: 0.58rem;
+      }
+
+      .ground-strip {
+        height: 80px;
+      }
+
+      .horizon-glow {
+        bottom: 80px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="star-canvas"></canvas>
+
+  <div class="scene">
+    <div class="sky-container" id="sky">
+      <div class="horizon-glow" id="horizon-glow"></div>
+      <div class="cloud" id="cloud1"></div>
+      <div class="cloud" id="cloud2"></div>
+      <div class="cloud" id="cloud3"></div>
+      <div id="moon-orb"></div>
+      <div id="sun-orb"></div>
+    </div>
+
+    <div class="ground-strip" id="ground-strip">
+      <div class="tree" style="left:6%"><div class="tree-top"></div><div class="tree-trunk"></div></div>
+      <div class="tree" style="left:14%"><div class="tree-top" style="border-bottom-width:34px;border-left-width:13px;border-right-width:13px"></div><div class="tree-trunk"></div></div>
+      <div class="tree" style="left:22%"><div class="tree-top"></div><div class="tree-trunk"></div></div>
+      <div class="tree" style="right:8%"><div class="tree-top" style="border-bottom-width:32px;border-left-width:12px;border-right-width:12px"></div><div class="tree-trunk"></div></div>
+      <div class="tree" style="right:18%"><div class="tree-top"></div><div class="tree-trunk"></div></div>
+      <div class="tree" style="right:27%"><div class="tree-top" style="border-bottom-width:22px;border-left-width:8px;border-right-width:8px"></div><div class="tree-trunk"></div></div>
+    </div>
+
+    <div class="controls-card">
+      <div class="time-row">
+        <div id="time-text">12:00</div>
+        <span class="period-label" id="period-label">PM</span>
+      </div>
+
+      <div class="phase-badge" id="phase-badge">
+        <div class="phase-dot" id="phase-dot"></div>
+        <span id="phase-text">Midday</span>
+      </div>
+
+      <div class="slider-wrap">
+        <div class="slider-track-labels">
+          <span class="track-label">12 AM</span>
+          <span class="track-label">6 AM</span>
+          <span class="track-label">12 PM</span>
+          <span class="track-label">6 PM</span>
+          <span class="track-label">11 PM</span>
+        </div>
+        <input type="range" id="time-slider" min="0" max="1439" value="720" step="1" />
+      </div>
+
+      <div class="info-row">
+        <div class="info-pill">
+          <span class="pill-label">Sunrise</span>
+          <span class="pill-val">06:00</span>
+        </div>
+        <div class="info-pill">
+          <span class="pill-label">Sun altitude</span>
+          <span class="pill-val" id="altitude-val">90deg</span>
+        </div>
+        <div class="info-pill">
+          <span class="pill-label">Sunset</span>
+          <span class="pill-val">18:00</span>
+        </div>
+      </div>
+
+      <p class="hint">Drag the slider to travel through 24 hours</p>
+    </div>
+  </div>
+
+  <script>
+    const slider = document.getElementById("time-slider");
+    const sunOrb = document.getElementById("sun-orb");
+    const moonOrb = document.getElementById("moon-orb");
+    const timeText = document.getElementById("time-text");
+    const periodLabel = document.getElementById("period-label");
+    const sky = document.getElementById("sky");
+    const groundStrip = document.getElementById("ground-strip");
+    const horizonGlow = document.getElementById("horizon-glow");
+    const phaseText = document.getElementById("phase-text");
+    const phaseDot = document.getElementById("phase-dot");
+    const altitudeVal = document.getElementById("altitude-val");
+    const clouds = document.querySelectorAll(".cloud");
+    const starCanvas = document.getElementById("star-canvas");
+    const starCtx = starCanvas.getContext("2d");
+
+    const SKY_PALETTES = {
+      night: { top: "#020817", mid: "#0f172a", bottom: "#1e293b" },
+      predawn: { top: "#0f172a", mid: "#1e1b4b", bottom: "#312e81" },
+      dawn: { top: "#1e1b4b", mid: "#7c3aed", bottom: "#f97316" },
+      sunrise: { top: "#f97316", mid: "#fbbf24", bottom: "#fef3c7" },
+      morning: { top: "#38bdf8", mid: "#7dd3fc", bottom: "#e0f2fe" },
+      day: { top: "#0ea5e9", mid: "#38bdf8", bottom: "#bae6fd" },
+      afternoon: { top: "#0284c7", mid: "#38bdf8", bottom: "#7dd3fc" },
+      sunset: { top: "#f97316", mid: "#ef4444", bottom: "#fbbf24" },
+      dusk: { top: "#1e1b4b", mid: "#7c3aed", bottom: "#f97316" },
+      evening: { top: "#0f172a", mid: "#1e293b", bottom: "#312e81" }
+    };
+
+    const GROUND_COLORS = {
+      night: "#0d1f12",
+      predawn: "#0f2318",
+      dawn: "#1a3a20",
+      sunrise: "#22522a",
+      morning: "#2d6b36",
+      day: "#2d7d3a",
+      afternoon: "#2d7d3a",
+      sunset: "#3b5c30",
+      dusk: "#1a3a20",
+      evening: "#0f2318"
+    };
+
+    const PHASE_LABELS = {
+      night: "Night",
+      predawn: "Pre-dawn",
+      dawn: "Dawn",
+      sunrise: "Sunrise",
+      morning: "Morning",
+      day: "Midday",
+      afternoon: "Afternoon",
+      sunset: "Sunset",
+      dusk: "Dusk",
+      evening: "Evening"
+    };
+
+    const PHASE_COLORS = {
+      night: "#94a3b8",
+      predawn: "#a78bfa",
+      dawn: "#f97316",
+      sunrise: "#fbbf24",
+      morning: "#38bdf8",
+      day: "#fbbf24",
+      afternoon: "#60a5fa",
+      sunset: "#f97316",
+      dusk: "#a78bfa",
+      evening: "#94a3b8"
+    };
+
+    let stars = [];
+
+    function getPhase(hour) {
+      if (hour >= 0 && hour < 4) return "night";
+      if (hour >= 4 && hour < 5) return "predawn";
+      if (hour >= 5 && hour < 6) return "dawn";
+      if (hour >= 6 && hour < 8) return "sunrise";
+      if (hour >= 8 && hour < 12) return "morning";
+      if (hour >= 12 && hour < 15) return "day";
+      if (hour >= 15 && hour < 17) return "afternoon";
+      if (hour >= 17 && hour < 19) return "sunset";
+      if (hour >= 19 && hour < 21) return "dusk";
+      return "evening";
+    }
+
+    function resizeStars() {
+      starCanvas.width = window.innerWidth;
+      starCanvas.height = window.innerHeight;
+    }
+
+    function generateStars() {
+      stars = Array.from({ length: 180 }, () => ({
+        x: Math.random() * window.innerWidth,
+        y: Math.random() * window.innerHeight * 0.72,
+        r: Math.random() * 1.3 + 0.3,
+        a: Math.random()
+      }));
+    }
+
+    function drawStars(opacity) {
+      starCtx.clearRect(0, 0, starCanvas.width, starCanvas.height);
+      if (opacity <= 0) return;
+
+      stars.forEach((star) => {
+        starCtx.beginPath();
+        starCtx.arc(star.x, star.y, star.r, 0, Math.PI * 2);
+        starCtx.fillStyle = `rgba(255,255,255,${star.a * opacity})`;
+        starCtx.fill();
+      });
+    }
+
+    function updateSun() {
+      const totalMinutes = parseInt(slider.value, 10);
+      const hour = totalMinutes / 60;
+      const hourNumber = Math.floor(hour);
+      const minutes = totalMinutes % 60;
+      const skyHeight = sky.clientHeight;
+      const skyWidth = sky.clientWidth;
+      const groundHeight = groundStrip.clientHeight;
+      const activeSkyHeight = skyHeight - groundHeight;
+
+      const displayHour = hourNumber % 12 === 0 ? 12 : hourNumber % 12;
+      timeText.innerText = `${displayHour.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}`;
+      periodLabel.innerText = hour < 12 ? "AM" : "PM";
+
+      const phase = getPhase(hour);
+      phaseText.innerText = PHASE_LABELS[phase];
+      phaseDot.style.background = PHASE_COLORS[phase];
+
+      const arcHeight = Math.sin((hour - 6) * (Math.PI / 12));
+      const isDay = arcHeight > 0;
+
+      const sunX = (totalMinutes / 1439) * (skyWidth - 64);
+      const sunY = isDay ? activeSkyHeight - arcHeight * (activeSkyHeight * 0.82) : skyHeight + 50;
+      sunOrb.style.left = `${sunX}px`;
+      sunOrb.style.top = `${sunY}px`;
+
+      const altitude = isDay ? Math.round(arcHeight * 90) : 0;
+      altitudeVal.innerText = `${altitude}deg`;
+
+      const moonArc = Math.sin((hour - 18) * (Math.PI / 12));
+      const moonVisible = !isDay || arcHeight < 0.1;
+      const moonX = ((((hour + 12) % 24) * 60) / 1439) * (skyWidth - 44);
+      const moonY = moonVisible && moonArc > 0
+        ? activeSkyHeight - moonArc * (activeSkyHeight * 0.68)
+        : skyHeight + 20;
+
+      moonOrb.style.left = `${moonX}px`;
+      moonOrb.style.top = `${moonY}px`;
+      moonOrb.style.opacity = moonVisible ? "0.9" : "0";
+
+      const palette = SKY_PALETTES[phase];
+      sky.style.background = `linear-gradient(to bottom, ${palette.top} 0%, ${palette.mid} 55%, ${palette.bottom} 100%)`;
+
+      const transitional = ["dawn", "sunrise", "sunset", "dusk"].includes(phase);
+      horizonGlow.style.background = transitional
+        ? `linear-gradient(to top, ${palette.bottom}88, transparent)`
+        : "transparent";
+
+      groundStrip.style.background = GROUND_COLORS[phase];
+
+      const nightPhases = ["night", "predawn", "evening"];
+      const dimPhases = ["dawn", "dusk"];
+      let starOpacity = 0;
+      if (nightPhases.includes(phase)) starOpacity = 1;
+      else if (dimPhases.includes(phase)) starOpacity = 0.35;
+      drawStars(starOpacity);
+
+      const cloudOpacity = isDay && !["sunrise", "sunset"].includes(phase) ? 1 : 0;
+      clouds.forEach((cloud) => {
+        cloud.style.opacity = cloudOpacity;
+      });
+
+      const darkBackground = nightPhases.includes(phase) || dimPhases.includes(phase);
+      document.body.style.background = darkBackground
+        ? `linear-gradient(to bottom, ${palette.top}, #020817)`
+        : `linear-gradient(to bottom, ${palette.top}, ${palette.mid})`;
+
+      if (["sunrise", "sunset", "dawn", "dusk"].includes(phase)) {
+        sunOrb.style.background = "radial-gradient(circle at 40% 38%, #fffde7 0%, #fbbf24 40%, #f97316 80%, #ef4444 100%)";
+        sunOrb.style.boxShadow = "0 0 40px 16px rgba(249,115,22,0.5), 0 0 100px 40px rgba(249,115,22,0.18)";
+      } else {
+        sunOrb.style.background = "radial-gradient(circle at 40% 38%, #fffde7 0%, #fbbf24 55%, #f97316 100%)";
+        sunOrb.style.boxShadow = "0 0 30px 10px rgba(251,191,36,0.45), 0 0 80px 30px rgba(251,191,36,0.15)";
+      }
+    }
+
+    function syncToLocalTime() {
+      const now = new Date();
+      slider.value = now.getHours() * 60 + now.getMinutes();
+      updateSun();
+    }
+
+    window.addEventListener("resize", () => {
+      resizeStars();
+      generateStars();
+      updateSun();
+    });
+
+    slider.addEventListener("input", updateSun);
+
+    resizeStars();
+    generateStars();
+    syncToLocalTime();
+    setInterval(syncToLocalTime, 1000);
+  </script>
+</body>
+</html>
