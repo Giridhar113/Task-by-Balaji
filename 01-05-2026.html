@@ -1,0 +1,1245 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Web Tech Quiz</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #0d0a0e;
+        --card: rgba(22, 14, 28, 0.82);
+        --accent: #f72585;
+        --gold: #ffd166;
+        --lime: #06d6a0;
+        --blue: #4361ee;
+        --text: #f0e6ff;
+        --muted: #9d8cb0;
+        --border: rgba(247, 37, 133, 0.2);
+        --glow: 0 0 40px rgba(247, 37, 133, 0.12);
+      }
+
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family: "Outfit", sans-serif;
+        background: var(--bg);
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        overflow: hidden;
+        color: var(--text);
+        padding: 20px;
+      }
+
+      .bg-canvas {
+        position: fixed;
+        inset: 0;
+        z-index: 0;
+        overflow: hidden;
+      }
+
+      .aurora {
+        position: absolute;
+        border-radius: 50%;
+        filter: blur(100px);
+        opacity: 0.35;
+        animation: pulse ease-in-out infinite alternate;
+      }
+
+      .a1 {
+        width: 700px;
+        height: 300px;
+        background: linear-gradient(135deg, #f72585, #7209b7);
+        top: -80px;
+        left: -150px;
+        animation-duration: 7s;
+      }
+
+      .a2 {
+        width: 600px;
+        height: 250px;
+        background: linear-gradient(135deg, #4361ee, #06d6a0);
+        bottom: -60px;
+        right: -100px;
+        animation-duration: 9s;
+      }
+
+      .a3 {
+        width: 400px;
+        height: 200px;
+        background: linear-gradient(135deg, #ffd166, #f72585);
+        top: 45%;
+        left: 35%;
+        animation-duration: 6s;
+      }
+
+      @keyframes pulse {
+        from {
+          transform: scale(1) rotate(0deg);
+          opacity: 0.3;
+        }
+        to {
+          transform: scale(1.15) rotate(6deg);
+          opacity: 0.45;
+        }
+      }
+
+      .dot-grid {
+        position: absolute;
+        inset: 0;
+        background-image: radial-gradient(
+          rgba(247, 37, 133, 0.18) 1px,
+          transparent 1px
+        );
+        background-size: 40px 40px;
+      }
+
+      .stripes {
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 340px;
+        height: 340px;
+        opacity: 0.06;
+        background: repeating-linear-gradient(
+          -45deg,
+          #f72585 0,
+          #f72585 2px,
+          transparent 2px,
+          transparent 18px
+        );
+      }
+
+      .ring {
+        position: absolute;
+        border-radius: 50%;
+        border: 1px solid;
+        animation: spin linear infinite;
+      }
+
+      .ring-1 {
+        width: 500px;
+        height: 500px;
+        border-color: rgba(247, 37, 133, 0.08);
+        top: -200px;
+        right: -150px;
+        animation-duration: 30s;
+      }
+
+      .ring-2 {
+        width: 320px;
+        height: 320px;
+        border-color: rgba(67, 97, 238, 0.1);
+        bottom: -120px;
+        left: -80px;
+        animation-duration: 20s;
+        animation-direction: reverse;
+      }
+
+      @keyframes spin {
+        from {
+          transform: rotate(0deg);
+        }
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      .particles {
+        position: absolute;
+        inset: 0;
+      }
+
+      .particle {
+        position: absolute;
+        border-radius: 50%;
+        opacity: 0;
+        animation: rise linear infinite;
+      }
+
+      @keyframes rise {
+        0% {
+          opacity: 0;
+          transform: translateY(0) scale(1);
+        }
+        15% {
+          opacity: 1;
+        }
+        85% {
+          opacity: 0.5;
+        }
+        100% {
+          opacity: 0;
+          transform: translateY(-100vh) scale(0.4);
+        }
+      }
+
+      .card {
+        position: relative;
+        z-index: 10;
+        background: var(--card);
+        backdrop-filter: blur(28px);
+        -webkit-backdrop-filter: blur(28px);
+        border: 1px solid var(--border);
+        border-radius: 24px;
+        padding: 2.6rem 2.8rem;
+        width: min(480px, 100%);
+        box-shadow:
+          var(--glow),
+          0 24px 80px rgba(0, 0, 0, 0.6),
+          inset 0 1px 0 rgba(255, 255, 255, 0.05);
+        animation: slide-up 0.65s cubic-bezier(0.22, 1, 0.36, 1) both;
+      }
+
+      .card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 10%;
+        right: 10%;
+        height: 2px;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          var(--accent),
+          var(--gold),
+          transparent
+        );
+        border-radius: 2px;
+      }
+
+      .card.exiting {
+        animation: cardExit 0.42s cubic-bezier(0.55, 0.06, 0.68, 0.19) forwards;
+      }
+
+      @keyframes slide-up {
+        from {
+          opacity: 0;
+          transform: translateY(36px) scale(0.96);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+      }
+
+      @keyframes cardExit {
+        from {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+        to {
+          opacity: 0;
+          transform: translateY(-18px) scale(0.96);
+        }
+      }
+
+      .hidden {
+        display: none !important;
+      }
+
+      .quiz-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: rgba(247, 37, 133, 0.12);
+        border: 1px solid rgba(247, 37, 133, 0.25);
+        color: var(--accent);
+        font-size: 0.72rem;
+        font-weight: 600;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        padding: 4px 12px;
+        border-radius: 20px;
+        margin-bottom: 14px;
+      }
+
+      #auth-container h2 {
+        font-size: 1.85rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, #fff 30%, var(--gold));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 6px;
+        line-height: 1.1;
+      }
+
+      .subtitle {
+        color: var(--muted);
+        font-size: 0.87rem;
+        margin-bottom: 2rem;
+        line-height: 1.5;
+      }
+
+      .field-wrap {
+        position: relative;
+        margin-bottom: 14px;
+      }
+
+      .field-icon {
+        position: absolute;
+        left: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 1rem;
+        opacity: 0.5;
+        pointer-events: none;
+      }
+
+      input {
+        width: 100%;
+        padding: 13px 16px 13px 42px;
+        border-radius: 12px;
+        border: 1px solid rgba(247, 37, 133, 0.15);
+        background: rgba(255, 255, 255, 0.04);
+        color: var(--text);
+        font-family: "Outfit", sans-serif;
+        font-size: 0.95rem;
+        outline: none;
+        transition:
+          border-color 0.3s,
+          box-shadow 0.3s,
+          transform 0.2s;
+        display: block;
+      }
+
+      input:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px rgba(247, 37, 133, 0.12);
+        transform: translateY(-1px);
+      }
+
+      input::placeholder {
+        color: var(--muted);
+      }
+
+      .btn-primary {
+        width: 100%;
+        padding: 14px;
+        border: none;
+        border-radius: 12px;
+        background: linear-gradient(135deg, var(--accent) 0%, #7209b7 100%);
+        color: #fff;
+        font-family: "Outfit", sans-serif;
+        font-weight: 700;
+        font-size: 1rem;
+        cursor: pointer;
+        letter-spacing: 0.4px;
+        transition:
+          opacity 0.2s,
+          transform 0.15s,
+          box-shadow 0.2s;
+        box-shadow: 0 4px 20px rgba(247, 37, 133, 0.35);
+        margin-top: 4px;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .btn-primary::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+          120deg,
+          transparent 0%,
+          rgba(255, 255, 255, 0.16) 30%,
+          transparent 58%
+        );
+        transform: translateX(-120%);
+        animation: buttonShine 2.8s ease-in-out infinite;
+      }
+
+      .btn-primary:hover {
+        opacity: 0.92;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 28px rgba(247, 37, 133, 0.45);
+      }
+
+      .btn-primary:active {
+        transform: translateY(0);
+      }
+
+      .btn-primary.launching {
+        animation: launchPulse 0.65s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        pointer-events: none;
+      }
+
+      .btn-primary.launching::before {
+        animation-duration: 0.9s;
+      }
+
+      @keyframes buttonShine {
+        0%,
+        100% {
+          transform: translateX(-120%);
+        }
+        45%,
+        55% {
+          transform: translateX(130%);
+        }
+      }
+
+      @keyframes launchPulse {
+        0% {
+          transform: scale(1);
+          box-shadow: 0 8px 28px rgba(247, 37, 133, 0.35);
+        }
+        50% {
+          transform: scale(0.98);
+          box-shadow: 0 0 0 10px rgba(247, 37, 133, 0.12);
+        }
+        100% {
+          transform: scale(1.02);
+          box-shadow: 0 0 0 18px rgba(247, 37, 133, 0);
+        }
+      }
+
+      .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+        gap: 12px;
+      }
+
+      #display-name {
+        font-weight: 700;
+        font-size: 0.88rem;
+        background: linear-gradient(135deg, var(--gold), var(--accent));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      .paper-tag {
+        background: rgba(67, 97, 238, 0.15);
+        border: 1px solid rgba(67, 97, 238, 0.3);
+        color: #7b9fff;
+        font-size: 0.7rem;
+        font-weight: 600;
+        letter-spacing: 1px;
+        padding: 2px 8px;
+        border-radius: 10px;
+      }
+
+      .score-tracker {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+
+      .score-pill {
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-weight: 700;
+        font-size: 0.78rem;
+      }
+
+      .score-pill.correct {
+        background: rgba(6, 214, 160, 0.12);
+        color: var(--lime);
+        border: 1px solid rgba(6, 214, 160, 0.2);
+      }
+
+      .score-pill.wrong {
+        background: rgba(247, 37, 133, 0.12);
+        color: var(--accent);
+        border: 1px solid rgba(247, 37, 133, 0.2);
+      }
+
+      .progress-wrap {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 10px;
+        height: 4px;
+        margin-bottom: 6px;
+        overflow: hidden;
+      }
+
+      .progress-bar {
+        height: 100%;
+        background: linear-gradient(90deg, var(--accent), var(--gold));
+        border-radius: 10px;
+        transition: width 0.4s ease;
+      }
+
+      .progress-label {
+        text-align: right;
+        font-size: 0.72rem;
+        color: var(--muted);
+        margin-bottom: 18px;
+        font-family: "JetBrains Mono", monospace;
+      }
+
+      .divider {
+        border: none;
+        border-top: 1px solid rgba(247, 37, 133, 0.1);
+        margin-bottom: 20px;
+      }
+
+      #question-text {
+        font-size: 1.08rem;
+        font-weight: 700;
+        line-height: 1.55;
+        margin-bottom: 18px;
+      }
+
+      .question-panel.entering #question-text,
+      .question-panel.entering #options-container button {
+        opacity: 0;
+        transform: translateY(18px);
+      }
+
+      .question-panel.entering #question-text {
+        animation: questionFade 0.42s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+      }
+
+      .question-panel.entering #options-container button:nth-child(1) {
+        animation: questionFade 0.42s 0.05s cubic-bezier(0.22, 1, 0.36, 1)
+          forwards;
+      }
+
+      .question-panel.entering #options-container button:nth-child(2) {
+        animation: questionFade 0.42s 0.11s cubic-bezier(0.22, 1, 0.36, 1)
+          forwards;
+      }
+
+      .question-panel.entering #options-container button:nth-child(3) {
+        animation: questionFade 0.42s 0.17s cubic-bezier(0.22, 1, 0.36, 1)
+          forwards;
+      }
+
+      .question-panel.leaving #question-text,
+      .question-panel.leaving #options-container button {
+        animation: questionOut 0.25s ease forwards;
+      }
+
+      #options-container button {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        width: 100%;
+        padding: 13px 16px;
+        margin-bottom: 10px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(247, 37, 133, 0.1);
+        border-radius: 12px;
+        color: var(--text);
+        font-family: "Outfit", sans-serif;
+        font-size: 0.93rem;
+        text-align: left;
+        cursor: pointer;
+        transition:
+          background 0.2s,
+          border-color 0.2s,
+          transform 0.15s,
+          box-shadow 0.2s;
+      }
+
+      #options-container button:hover {
+        background: rgba(247, 37, 133, 0.08);
+        border-color: var(--accent);
+        transform: translateX(5px);
+        box-shadow: -3px 0 0 var(--accent);
+      }
+
+      .opt-label {
+        min-width: 24px;
+        font-weight: 700;
+        color: var(--gold);
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.85rem;
+      }
+
+      .opt-text {
+        color: var(--text);
+      }
+
+      @keyframes questionFade {
+        from {
+          opacity: 0;
+          transform: translateY(18px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @keyframes questionOut {
+        from {
+          opacity: 1;
+          transform: translateY(0);
+        }
+        to {
+          opacity: 0;
+          transform: translateY(-10px);
+        }
+      }
+
+      .modal {
+        position: fixed;
+        inset: 0;
+        background: rgba(13, 10, 14, 0.85);
+        backdrop-filter: blur(10px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 100;
+        animation: fade-in 0.3s ease;
+        padding: 20px;
+      }
+
+      @keyframes fade-in {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+
+      .modal-content {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 24px;
+        padding: 3rem 2.8rem;
+        text-align: center;
+        width: min(420px, 100%);
+        box-shadow:
+          var(--glow),
+          0 30px 80px rgba(0, 0, 0, 0.7);
+        animation: slide-up 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .modal-content::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 10%;
+        right: 10%;
+        height: 2px;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          var(--gold),
+          var(--accent),
+          transparent
+        );
+      }
+
+      .trophy {
+        font-size: 3.8rem;
+        margin-bottom: 14px;
+        display: block;
+        animation: bounce 0.6s 0.3s cubic-bezier(0.36, 1.56, 0.64, 1) both;
+      }
+
+      @keyframes bounce {
+        from {
+          opacity: 0;
+          transform: scale(0.4) translateY(-20px);
+        }
+        to {
+          opacity: 1;
+          transform: scale(1);
+        }
+      }
+
+      .score-ring {
+        width: 110px;
+        height: 110px;
+        margin: 0 auto 18px;
+        position: relative;
+      }
+
+      .score-ring svg {
+        transform: rotate(-90deg);
+      }
+
+      .ring-bg {
+        fill: none;
+        stroke: rgba(255, 255, 255, 0.06);
+        stroke-width: 8;
+      }
+
+      .ring-val {
+        fill: none;
+        stroke-width: 8;
+        stroke-linecap: round;
+        transition: stroke-dashoffset 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      .ring-label {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-family: "JetBrains Mono", monospace;
+        font-size: 1.3rem;
+        font-weight: 600;
+        color: var(--text);
+      }
+
+      #status-text {
+        font-size: 2rem;
+        font-weight: 800;
+        letter-spacing: -1px;
+        margin-bottom: 8px;
+      }
+
+      #final-stats {
+        color: var(--muted);
+        font-size: 0.9rem;
+        margin-bottom: 16px;
+        line-height: 1.7;
+      }
+
+      #paper-info {
+        font-size: 0.76rem;
+        font-family: "JetBrains Mono", monospace;
+        color: var(--blue);
+        margin-bottom: 14px;
+      }
+
+      #email-status {
+        font-size: 0.8rem;
+        margin-bottom: 16px;
+        min-height: 20px;
+        font-family: "JetBrains Mono", monospace;
+      }
+
+      .sending {
+        color: var(--gold);
+      }
+
+      .sent {
+        color: var(--lime);
+      }
+
+      .failed {
+        color: var(--accent);
+      }
+
+      @media (max-width: 560px) {
+        body {
+          align-items: stretch;
+          overflow-y: auto;
+        }
+
+        .card,
+        .modal-content {
+          padding: 2rem 1.4rem;
+          border-radius: 20px;
+        }
+
+        .header {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="bg-canvas">
+      <div class="aurora a1"></div>
+      <div class="aurora a2"></div>
+      <div class="aurora a3"></div>
+      <div class="dot-grid"></div>
+      <div class="stripes"></div>
+      <div class="ring ring-1"></div>
+      <div class="ring ring-2"></div>
+      <div class="particles" id="particles"></div>
+    </div>
+
+    <div id="auth-container" class="card">
+      <div class="quiz-badge">✦ Web Tech Quiz</div>
+      <h2>Test Your Skills</h2>
+      <p class="subtitle">
+        10 questions · 50% passing mark · Results sent to your email
+      </p>
+      <div class="field-wrap">
+        <span class="field-icon">👤</span>
+        <input
+          type="text"
+          id="username"
+          placeholder="Your Full Name"
+          required
+        />
+      </div>
+      <div class="field-wrap">
+        <span class="field-icon">✉️</span>
+        <input
+          type="email"
+          id="useremail"
+          placeholder="Email Address"
+          required
+        />
+      </div>
+      <button class="btn-primary" id="start-btn" onclick="startExam()">
+        Begin Quiz →
+      </button>
+    </div>
+
+    <div id="quiz-container" class="card hidden question-panel">
+      <div class="header">
+        <div>
+          <span id="display-name"></span><br />
+          <span class="paper-tag" id="paper-tag"></span>
+        </div>
+        <div class="score-tracker">
+          <span class="score-pill correct"
+            >✓ <span id="correct-count">0</span></span
+          >
+          <span class="score-pill wrong"
+            >✗ <span id="wrong-count">0</span></span
+          >
+        </div>
+      </div>
+      <div class="progress-wrap">
+        <div class="progress-bar" id="progress-bar" style="width: 0%"></div>
+      </div>
+      <div class="progress-label" id="progress-label">0 / 10</div>
+      <hr class="divider" />
+      <h3 id="question-text"></h3>
+      <div id="options-container"></div>
+    </div>
+
+    <div id="result-modal" class="modal hidden">
+      <div class="modal-content">
+        <span class="trophy" id="trophy-icon"></span>
+        <div class="score-ring">
+          <svg viewBox="0 0 100 100" width="110" height="110">
+            <circle class="ring-bg" cx="50" cy="50" r="42" />
+            <circle
+              class="ring-val"
+              id="ring-val"
+              cx="50"
+              cy="50"
+              r="42"
+              stroke-dasharray="263.9"
+              stroke-dashoffset="263.9"
+            />
+          </svg>
+          <div class="ring-label" id="ring-label">0/10</div>
+        </div>
+        <h2 id="status-text"></h2>
+        <p id="final-stats"></p>
+        <p id="paper-info"></p>
+        <p id="email-status"></p>
+        <button class="btn-primary" onclick="location.reload()">
+          Try Again →
+        </button>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <script>
+      const colors = ["#f72585", "#ffd166", "#06d6a0", "#4361ee", "#7209b7"];
+      const pc = document.getElementById("particles");
+      const authContainer = document.getElementById("auth-container");
+      const quizContainer = document.getElementById("quiz-container");
+      const startButton = document.getElementById("start-btn");
+
+      for (let i = 0; i < 50; i++) {
+        const p = document.createElement("div");
+        p.className = "particle";
+        const sz = Math.random() > 0.7 ? 3 : 2;
+        p.style.cssText = `left:${Math.random() * 100}%;top:${100 + Math.random() * 10}%;
+          width:${sz}px;height:${sz}px;
+          background:${colors[Math.floor(Math.random() * colors.length)]};
+          animation-duration:${7 + Math.random() * 15}s;
+          animation-delay:${Math.random() * 14}s;`;
+        pc.appendChild(p);
+      }
+
+      const papers = [
+        {
+          name: "Paper 1 — HTML & CSS",
+          questions: [
+            {
+              q: "What does HTML stand for?",
+              a: [
+                "Hyper Text Markup Language",
+                "High Tech Modern Language",
+                "Hyperlink Text Management",
+              ],
+              correct: 0,
+            },
+            {
+              q: "Which tag creates a hyperlink?",
+              a: ["<link>", "<a>", "<href>"],
+              correct: 1,
+            },
+            {
+              q: "Which tag creates an unordered list?",
+              a: ["<ol>", "<li>", "<ul>"],
+              correct: 2,
+            },
+            {
+              q: "Which HTML tag embeds an image?",
+              a: ["<img>", "<image>", "<src>"],
+              correct: 0,
+            },
+            {
+              q: "Which attribute makes an input required?",
+              a: ["placeholder", "required", "mandatory"],
+              correct: 1,
+            },
+            {
+              q: "What does CSS stand for?",
+              a: [
+                "Computer Style Sheets",
+                "Cascading Style Sheets",
+                "Creative Style Syntax",
+              ],
+              correct: 1,
+            },
+            {
+              q: "Which CSS property changes text color?",
+              a: ["font-color", "text-color", "color"],
+              correct: 2,
+            },
+            {
+              q: "Which CSS property sets the text size?",
+              a: ["text-size", "font-size", "size"],
+              correct: 1,
+            },
+            {
+              q: "Which CSS value centers a block element?",
+              a: ["margin: center", "margin: auto", "align: center"],
+              correct: 1,
+            },
+            {
+              q: "Which CSS property adds space inside an element?",
+              a: ["margin", "padding", "spacing"],
+              correct: 1,
+            },
+          ],
+        },
+        {
+          name: "Paper 2 — JavaScript",
+          questions: [
+            {
+              q: "Which keyword declares a constant in JS?",
+              a: ["let", "var", "const"],
+              correct: 2,
+            },
+            {
+              q: "Which method adds an item to end of an array?",
+              a: ["push()", "pop()", "shift()"],
+              correct: 0,
+            },
+            {
+              q: "What does DOM stand for?",
+              a: [
+                "Document Object Model",
+                "Data Object Map",
+                "Document Order Method",
+              ],
+              correct: 0,
+            },
+            {
+              q: "How do you write a comment in JavaScript?",
+              a: ["<!-- comment -->", "# comment", "// comment"],
+              correct: 2,
+            },
+            {
+              q: "Which method selects an element by its ID?",
+              a: ["querySelector()", "getElementById()", "getElement()"],
+              correct: 1,
+            },
+            {
+              q: "What does JSON stand for?",
+              a: [
+                "JavaScript Object Notation",
+                "Java Serialized Object",
+                "JavaScript Ordered Nodes",
+              ],
+              correct: 0,
+            },
+            {
+              q: "Which operator checks value AND type equality?",
+              a: ["==", "===", "="],
+              correct: 1,
+            },
+            {
+              q: "Which built-in method converts JSON to an object?",
+              a: ["JSON.parse()", "JSON.stringify()", "JSON.convert()"],
+              correct: 0,
+            },
+            {
+              q: "What does NaN stand for?",
+              a: ["Not a Node", "Not a Number", "Null and None"],
+              correct: 1,
+            },
+            {
+              q: "Which event fires when a button is clicked?",
+              a: ["onhover", "onsubmit", "onclick"],
+              correct: 2,
+            },
+          ],
+        },
+        {
+          name: "Paper 3 — Web Concepts",
+          questions: [
+            {
+              q: "Which protocol is used for secure web browsing?",
+              a: ["FTP", "HTTPS", "SSH"],
+              correct: 1,
+            },
+            {
+              q: "What does URL stand for?",
+              a: [
+                "Uniform Resource Locator",
+                "Universal Reference Link",
+                "Unified Resource Label",
+              ],
+              correct: 0,
+            },
+            {
+              q: "Which of these is a CSS framework?",
+              a: ["React", "Bootstrap", "Node.js"],
+              correct: 1,
+            },
+            {
+              q: "Which language runs on the server side?",
+              a: ["HTML", "CSS", "PHP"],
+              correct: 2,
+            },
+            {
+              q: "What is the purpose of a CDN?",
+              a: [
+                "Compile Dynamic Nodes",
+                "Deliver content faster via distributed servers",
+                "Connect Database Networks",
+              ],
+              correct: 1,
+            },
+            {
+              q: "Which HTTP method is used to submit form data?",
+              a: ["GET", "POST", "PUT"],
+              correct: 1,
+            },
+            {
+              q: "What does API stand for?",
+              a: [
+                "Application Programming Interface",
+                "Automated Page Integration",
+                "Active Process Index",
+              ],
+              correct: 0,
+            },
+            {
+              q: "Which port does HTTPS use by default?",
+              a: ["80", "443", "3000"],
+              correct: 1,
+            },
+            {
+              q: "Which storage holds data per browser session only?",
+              a: ["localStorage", "sessionStorage", "cookieStorage"],
+              correct: 1,
+            },
+            {
+              q: "What does responsive design mean?",
+              a: [
+                "Fast loading pages",
+                "Layout adapts to screen size",
+                "Auto-translating content",
+              ],
+              correct: 1,
+            },
+          ],
+        },
+      ];
+
+      let currentPaper = null;
+      let currentIndex = 0;
+      let stats = { correct: 0, wrong: 0 };
+      let userName = "";
+      let userEmail = "";
+      let paperPool = [];
+
+      function refillPaperPool() {
+        paperPool = papers
+          .map((_, index) => index)
+          .sort(() => Math.random() - 0.5);
+      }
+
+      function getNextPaper() {
+        if (paperPool.length === 0) {
+          refillPaperPool();
+        }
+        return papers[paperPool.pop()];
+      }
+
+      function startExam() {
+        userName = document.getElementById("username").value.trim();
+        userEmail = document.getElementById("useremail").value.trim();
+        if (!userName) return alert("Please enter your name");
+        if (!userEmail) return alert("Please enter your email");
+
+        currentPaper = getNextPaper();
+
+        document.getElementById("display-name").innerText = `✦ ${userName}`;
+        document.getElementById("paper-tag").innerText = currentPaper.name;
+
+        currentIndex = 0;
+        stats = { correct: 0, wrong: 0 };
+        document.getElementById("correct-count").innerText = "0";
+        document.getElementById("wrong-count").innerText = "0";
+
+        startButton.classList.add("launching");
+        authContainer.classList.add("exiting");
+
+        setTimeout(() => {
+          authContainer.classList.add("hidden");
+          authContainer.classList.remove("exiting");
+          startButton.classList.remove("launching");
+          quizContainer.classList.remove("hidden");
+          showQuestion(true);
+        }, 420);
+      }
+
+      function showQuestion(animateIn = true) {
+        if (currentIndex >= 10) return endExam();
+
+        const data = currentPaper.questions[currentIndex];
+        document.getElementById("progress-bar").style.width =
+          `${currentIndex * 10}%`;
+        document.getElementById("progress-label").innerText =
+          `${currentIndex} / 10`;
+        document.getElementById("question-text").innerText =
+          `${currentIndex + 1}. ${data.q}`;
+
+        const div = document.getElementById("options-container");
+        div.innerHTML = "";
+
+        data.a.forEach((ans, i) => {
+          const btn = document.createElement("button");
+
+          const label = document.createElement("span");
+          label.className = "opt-label";
+          label.textContent = ["A", "B", "C"][i] + ".";
+
+          const text = document.createElement("span");
+          text.className = "opt-text";
+          text.textContent = ans;
+
+          btn.appendChild(label);
+          btn.appendChild(text);
+          btn.onclick = () => checkAnswer(i);
+          div.appendChild(btn);
+        });
+
+        quizContainer.classList.remove("leaving");
+        if (animateIn) {
+          quizContainer.classList.remove("entering");
+          void quizContainer.offsetWidth;
+          quizContainer.classList.add("entering");
+          setTimeout(() => {
+            quizContainer.classList.remove("entering");
+          }, 700);
+        }
+      }
+
+      function checkAnswer(sel) {
+        const btns = document.querySelectorAll("#options-container button");
+        const correct = currentPaper.questions[currentIndex].correct;
+        btns.forEach((b) => (b.disabled = true));
+
+        if (sel === correct) {
+          btns[sel].style.background = "rgba(6,214,160,0.15)";
+          btns[sel].style.borderColor = "var(--lime)";
+          btns[sel].style.boxShadow = "-3px 0 0 var(--lime)";
+          stats.correct++;
+          document.getElementById("correct-count").innerText = stats.correct;
+        } else {
+          btns[sel].style.background = "rgba(247,37,133,0.15)";
+          btns[sel].style.borderColor = "var(--accent)";
+          btns[sel].style.boxShadow = "-3px 0 0 var(--accent)";
+          btns[correct].style.background = "rgba(6,214,160,0.1)";
+          btns[correct].style.borderColor = "var(--lime)";
+          stats.wrong++;
+          document.getElementById("wrong-count").innerText = stats.wrong;
+        }
+
+        setTimeout(() => {
+          quizContainer.classList.remove("entering");
+          quizContainer.classList.add("leaving");
+          currentIndex++;
+          setTimeout(() => {
+            showQuestion(true);
+          }, 240);
+        }, 700);
+      }
+
+      function endExam() {
+        const isPass = stats.correct >= 5;
+        document.getElementById("quiz-container").classList.add("hidden");
+        document.getElementById("result-modal").classList.remove("hidden");
+
+        document.getElementById("trophy-icon").innerText = isPass ? "🏆" : "💡";
+        document.getElementById("ring-label").innerText = `${stats.correct}/10`;
+        document.getElementById("paper-info").innerText =
+          `📄 ${currentPaper.name}`;
+
+        const st = document.getElementById("status-text");
+        st.innerText = isPass ? "You Passed! 🎉" : "Keep Practicing";
+        st.style.color = isPass ? "var(--lime)" : "var(--accent)";
+
+        document.getElementById("final-stats").innerHTML =
+          `<strong style="color:var(--text)">${stats.correct} correct</strong> out of 10 questions<br>
+           <span style="color:var(--muted);font-size:.82rem">${stats.wrong} wrong · Score: ${stats.correct * 10}%</span>`;
+
+        const ring = document.getElementById("ring-val");
+        ring.style.stroke = isPass ? "var(--lime)" : "var(--accent)";
+        ring.style.filter = `drop-shadow(0 0 6px ${isPass ? "#06d6a0" : "#f72585"})`;
+        setTimeout(() => {
+          ring.style.strokeDashoffset = 263.9 - (stats.correct / 10) * 263.9;
+        }, 150);
+
+        sendEmail(isPass);
+      }
+
+      function sendEmail(isPass) {
+        const statusEl = document.getElementById("email-status");
+        statusEl.className = "sending";
+        statusEl.innerText = "⏳ Sending result to your email…";
+
+        emailjs.init("ztBQ6fPi-pUSPIGGV");
+        emailjs
+          .send("service_8706zud", "template_rbai7wv", {
+            to_email: userEmail,
+            name: userName,
+            paper: currentPaper.name,
+            status: isPass ? "✅ PASSED" : "❌ FAILED",
+            correct: stats.correct,
+            wrong: stats.wrong,
+            score: `${stats.correct * 10}%`,
+          })
+          .then(() => {
+            statusEl.className = "sent";
+            statusEl.innerText = "✅ Result emailed successfully!";
+          })
+          .catch(() => {
+            statusEl.className = "failed";
+            statusEl.innerText = "⚠️ Email failed — check your EmailJS keys.";
+          });
+      }
+    </script>
+  </body>
+</html>
