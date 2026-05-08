@@ -1,0 +1,491 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Nova</title>
+    <style>
+      :root {
+        --cyan: #07ecff;
+        --text: #ffffff;
+        --muted: rgba(218, 209, 238, 0.72);
+        --line: rgba(255, 255, 255, 0.12);
+        --card: rgba(255, 255, 255, 0.075);
+        --card-line: rgba(255, 255, 255, 0.13);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        min-height: 100%;
+        background: #0a1b25;
+      }
+
+      body {
+        min-height: 100vh;
+        margin: 0;
+        color: var(--text);
+        font-family: "Inter", "Segoe UI", Arial, sans-serif;
+        letter-spacing: 0;
+        background:
+          radial-gradient(
+            circle at 8% 42%,
+            rgba(113, 48, 188, 0.95),
+            rgba(72, 35, 128, 0.76) 30%,
+            transparent 58%
+          ),
+          radial-gradient(
+            circle at 46% 50%,
+            rgba(236, 0, 226, 0.96),
+            rgba(188, 0, 198, 0.72) 28%,
+            transparent 56%
+          ),
+          radial-gradient(
+            circle at 92% 58%,
+            rgba(0, 232, 222, 0.9),
+            rgba(0, 158, 162, 0.72) 31%,
+            transparent 58%
+          ),
+          linear-gradient(
+            180deg,
+            #12151f 0%,
+            #080b13 18%,
+            #12071e 47%,
+            #08101a 100%
+          );
+        background-attachment: fixed;
+      }
+
+      .page {
+        min-height: 100vh;
+        overflow: hidden;
+        border-radius: 0 0 12px 12px;
+        background: rgba(8, 11, 18, 0.12);
+      }
+
+      .nav,
+      .footer-inner {
+        width: min(1190px, calc(100% - 128px));
+        margin: 0 auto;
+      }
+
+      header {
+        height: 73px;
+        border-bottom: 1px solid var(--line);
+        background: rgba(9, 12, 20, 0.46);
+        backdrop-filter: blur(10px);
+      }
+
+      .nav {
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .brand {
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 29px;
+        font-weight: 900;
+        line-height: 1;
+      }
+
+      .mark {
+        width: 19px;
+        height: 19px;
+        color: var(--cyan);
+        filter: drop-shadow(0 0 6px rgba(7, 236, 255, 0.55));
+      }
+
+      .dot {
+        color: #18d8ff;
+      }
+
+      .button {
+        appearance: none;
+        position: relative;
+        overflow: hidden;
+        border: 0;
+        border-radius: 999px;
+        color: #fff;
+        cursor: pointer;
+        font: inherit;
+        font-size: 13px;
+        font-weight: 800;
+        background: linear-gradient(
+          100deg,
+          #8b3ff1 0%,
+          #20c2ff 58%,
+          #00dfe0 100%
+        );
+        box-shadow: 0 13px 28px rgba(25, 210, 233, 0.22);
+        transition:
+          transform 180ms ease,
+          box-shadow 180ms ease,
+          filter 180ms ease;
+      }
+
+      .button::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        transform: translateX(-115%) skewX(-20deg);
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(255, 255, 255, 0.36),
+          transparent
+        );
+        transition: transform 620ms ease;
+      }
+
+      .button:hover {
+        transform: translateY(-3px);
+        filter: saturate(1.08);
+        box-shadow:
+          0 18px 36px rgba(25, 210, 233, 0.32),
+          0 0 18px rgba(138, 63, 241, 0.2);
+      }
+
+      .button:hover::before {
+        transform: translateX(115%) skewX(-20deg);
+      }
+
+      .button.nav-cta {
+        min-width: 118px;
+        height: 38px;
+      }
+
+      .hero {
+        position: relative;
+        isolation: isolate;
+        min-height: 590px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 26px 24px 72px;
+      }
+
+      .hero::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: -1;
+        background:
+          radial-gradient(
+            circle at 18% 52%,
+            rgba(119, 52, 197, 0.95),
+            rgba(86, 38, 150, 0.62) 24%,
+            transparent 48%
+          ),
+          radial-gradient(
+            circle at 48% 58%,
+            rgba(236, 0, 226, 0.96),
+            rgba(188, 0, 198, 0.72) 25%,
+            transparent 52%
+          ),
+          radial-gradient(
+            circle at 88% 60%,
+            rgba(0, 232, 222, 0.88),
+            rgba(0, 158, 162, 0.7) 28%,
+            transparent 52%
+          );
+      }
+
+      .hero::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: -1;
+        background:
+          linear-gradient(
+            180deg,
+            rgba(8, 11, 18, 0.52) 0%,
+            rgba(8, 11, 18, 0.08) 42%,
+            rgba(8, 11, 18, 0.14) 100%
+          ),
+          linear-gradient(90deg, rgba(8, 11, 18, 0.1), rgba(8, 11, 18, 0.2));
+      }
+
+      .hero-inner {
+        width: min(680px, 100%);
+      }
+
+      h1 {
+        margin: 0;
+        font-size: clamp(52px, 5.25vw, 76px);
+        line-height: 0.98;
+        font-weight: 950;
+      }
+
+      .hero p {
+        width: min(600px, 100%);
+        margin: 28px auto 42px;
+        color: var(--muted);
+        font-size: 18px;
+        line-height: 1.52;
+        font-weight: 500;
+      }
+
+      .hero-cta {
+        min-width: 199px;
+        height: 54px;
+        font-size: 14px;
+        animation: ctaPulse 2.7s ease-in-out infinite;
+      }
+
+      .features {
+        min-height: 407px;
+        padding: 44px 24px 62px;
+      }
+
+      .feature-grid {
+        width: min(1080px, 100%);
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 27px;
+      }
+
+      .card {
+        position: relative;
+        overflow: hidden;
+        min-height: 288px;
+        padding: 36px 27px 28px;
+        border: 1px solid var(--card-line);
+        border-radius: 20px;
+        background: var(--card);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07);
+        backdrop-filter: blur(7px);
+        transition:
+          transform 220ms ease,
+          border-color 220ms ease,
+          box-shadow 220ms ease,
+          background 220ms ease;
+      }
+
+      .card:hover {
+        transform: translateY(-10px);
+        border-color: rgba(7, 236, 255, 0.38);
+        background: rgba(255, 255, 255, 0.105);
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.1),
+          0 24px 50px rgba(5, 17, 35, 0.28),
+          0 0 24px rgba(7, 236, 255, 0.16);
+      }
+
+      .icon-box {
+        width: 55px;
+        height: 55px;
+        display: grid;
+        place-items: center;
+        margin-bottom: 25px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 14px;
+        color: var(--cyan);
+        background: linear-gradient(
+          135deg,
+          rgba(66, 109, 221, 0.56),
+          rgba(135, 63, 215, 0.38)
+        );
+        transition:
+          transform 220ms ease,
+          border-color 220ms ease,
+          box-shadow 220ms ease;
+      }
+
+      .card:hover .icon-box {
+        transform: scale(1.08) rotate(-3deg);
+        border-color: rgba(7, 236, 255, 0.34);
+        box-shadow: 0 0 22px rgba(7, 236, 255, 0.2);
+      }
+
+      h2 {
+        margin: 0 0 16px;
+        font-size: 23px;
+        line-height: 1.2;
+        font-weight: 900;
+      }
+
+      .card p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 16px;
+        line-height: 1.42;
+        font-weight: 600;
+      }
+
+      .spacer {
+        height: 293px;
+      }
+
+      footer {
+        min-height: 94px;
+        display: flex;
+        align-items: center;
+        border-top: 1px solid var(--line);
+        background: rgba(4, 12, 24, 0.18);
+        backdrop-filter: blur(8px);
+      }
+
+      .footer-inner {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 24px;
+        color: var(--muted);
+        font-size: 14px;
+        font-weight: 500;
+      }
+
+      .links {
+        display: flex;
+        gap: 32px;
+      }
+
+      .links a {
+        color: var(--muted);
+        text-decoration: none;
+        transition:
+          color 180ms ease,
+          text-shadow 180ms ease;
+      }
+
+      .links a:hover {
+        color: #ffffff;
+        text-shadow: 0 0 14px rgba(7, 236, 255, 0.42);
+      }
+
+      @keyframes ctaPulse {
+        0%,
+        100% {
+          box-shadow: 0 13px 28px rgba(25, 210, 233, 0.22);
+        }
+
+        50% {
+          box-shadow:
+            0 17px 38px rgba(25, 210, 233, 0.35),
+            0 0 24px rgba(138, 63, 241, 0.22);
+        }
+      }
+
+      @media (max-width: 900px) {
+        .nav,
+        .footer-inner {
+          width: min(100% - 40px, 1190px);
+        }
+
+        .hero {
+          padding-top: 42px;
+          padding-bottom: 58px;
+        }
+
+        h1 {
+          font-size: 46px;
+        }
+
+        .feature-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .spacer {
+          height: 120px;
+        }
+
+        .footer-inner {
+          flex-direction: column;
+          padding: 24px 0;
+          text-align: center;
+        }
+
+        .links {
+          flex-wrap: wrap;
+          justify-content: center;
+          gap: 16px 24px;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <main class="page">
+      <header>
+        <nav class="nav">
+          <div class="brand">
+            <svg class="mark" viewBox="0 0 24 24" fill="none">
+              <path
+                d="M12 2.8 21.2 12 12 21.2 2.8 12 12 2.8Z"
+                stroke="currentColor"
+              />
+              <path d="M5.4 12h13.2" stroke="currentColor" />
+            </svg>
+            <span>Nova <span class="dot">.</span></span>
+          </div>
+
+          <button class="button nav-cta" type="button">Get Started</button>
+        </nav>
+      </header>
+
+      <section class="hero">
+        <div class="hero-inner">
+          <h1>Connect in the Speed of Light</h1>
+          <p>
+            A completely revolutionized team messaging platform. Secure,
+            instantaneous, and designed to look as good as it performs.
+          </p>
+
+          <button class="button hero-cta" type="button">Experience Nova</button>
+        </div>
+      </section>
+
+      <section class="features">
+        <div class="feature-grid">
+          <article class="card">
+            <div class="icon-box">⚡</div>
+            <h2>Real-time Sync</h2>
+            <p>
+              Collaborate with your team instantly across the globe. Our
+              distributed network ensures messages arrive before you blink.
+            </p>
+          </article>
+
+          <article class="card">
+            <div class="icon-box">🔒</div>
+            <h2>End-to-End Encrypted</h2>
+            <p>
+              Your data belongs to you. Military-grade encryption protects your
+              conversations from prying eyes at every step.
+            </p>
+          </article>
+
+          <article class="card">
+            <div class="icon-box">⚙</div>
+            <h2>Custom Workflows</h2>
+            <p>
+              Tailor the platform to your needs. Create automated bots,
+              integrate tools, and streamline your daily operations seamlessly.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <div class="spacer"></div>
+
+      <footer>
+        <div class="footer-inner">
+          <span>&copy; 2026 Nova Communications. All rights reserved.</span>
+          <div class="links">
+            <a href="#">Privacy Policy</a>
+            <a href="#">Terms of Service</a>
+            <a href="#">Contact Us</a>
+          </div>
+        </div>
+      </footer>
+    </main>
+  </body>
+</html>
